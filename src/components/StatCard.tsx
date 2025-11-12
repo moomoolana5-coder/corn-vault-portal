@@ -12,8 +12,8 @@ interface StatCardProps {
 
 export function StatCard({ title, value, subtitle, icon: Icon, isLoading }: StatCardProps) {
   return (
-    <Card className="group relative overflow-hidden border-border/40 bg-gradient-card backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+    <Card className="group relative overflow-hidden border-border/40 bg-gradient-card backdrop-blur-sm transition-all duration-300 hover:border-primary/50 hover:shadow-glow-gold hover:scale-[1.02]">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-primary/5 to-accent/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
       
       <div className="relative p-6">
         <div className="flex items-start justify-between">
