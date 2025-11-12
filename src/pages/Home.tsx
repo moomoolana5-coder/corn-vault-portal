@@ -11,6 +11,7 @@ import { useTokenMeta, useFormattedBalance, useDeadBalance } from '@/hooks/useEr
 import { CORN_ADDRESS, VECORN_ADDRESS } from '@/lib/chains';
 import { formatBalance } from '@/lib/format';
 import { Coins, Lock, Flame, ArrowRight } from 'lucide-react';
+import cornLogo from '@/assets/corn-logo-new.png';
 
 export default function Home() {
   const { address } = useAccount();
@@ -40,6 +41,13 @@ export default function Home() {
 
         {/* Hero Section */}
         <section className="text-center mb-12 md:mb-20 px-4">
+          <div className="flex justify-center mb-6 md:mb-8">
+            <img 
+              src={cornLogo} 
+              alt="CORN PROTOCOL Logo" 
+              className="w-24 h-24 md:w-32 md:h-32 animate-fade-in hover:scale-110 transition-transform duration-300"
+            />
+          </div>
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-corn bg-clip-text text-transparent">
             CORN PROTOCOL
           </h1>
