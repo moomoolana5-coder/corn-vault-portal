@@ -18,6 +18,7 @@ interface StakingPoolCardProps {
   stakeTokenDecimals?: number;
   earnTokenDecimals?: number;
   walletAddress: `0x${string}` | undefined;
+  isConnected: boolean;
 }
 
 export function StakingPoolCard({
@@ -28,6 +29,7 @@ export function StakingPoolCard({
   stakeTokenDecimals,
   earnTokenDecimals,
   walletAddress,
+  isConnected,
 }: StakingPoolCardProps) {
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
@@ -103,12 +105,16 @@ export function StakingPoolCard({
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
             <p className="text-xs font-medium text-muted-foreground mb-1.5">Available</p>
-            <p className="text-base font-semibold text-foreground">{formatBalance(stakeBalance.formatted)}</p>
+            <p className="text-base font-semibold text-foreground">
+              {isConnected ? formatBalance(stakeBalance.formatted) : '—'}
+            </p>
             <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
           </div>
           <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
             <p className="text-xs font-medium text-muted-foreground mb-1.5">Staked</p>
-            <p className="text-base font-semibold text-foreground">0.00</p>
+            <p className="text-base font-semibold text-foreground">
+              {isConnected ? '0.00' : '—'}
+            </p>
             <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
           </div>
         </div>
@@ -121,59 +127,77 @@ export function StakingPoolCard({
           </TabsList>
 
           <TabsContent value="stake" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor={`stake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
-              <div className="flex gap-2">
-                <Input
-                  id={`stake-${stakeTokenAddress}`}
-                  type="number"
-                  placeholder="0.0"
-                  value={stakeAmount}
-                  onChange={(e) => setStakeAmount(e.target.value)}
-                  className="h-11 bg-background/60 border-border/40"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setStakeAmount(stakeBalance.formatted)}
-                  className="px-6 font-medium"
-                >
-                  MAX
-                </Button>
+            {!isConnected ? (
+              <div className="py-8 text-center">
+                <p className="text-sm text-muted-foreground mb-4">Connect your wallet to stake</p>
+                <w3m-button />
               </div>
-            </div>
-            <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all">
-              <Lock className="w-4 h-4 mr-2" />
-              Stake {stakeTokenSymbol}
-            </Button>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor={`stake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id={`stake-${stakeTokenAddress}`}
+                      type="number"
+                      placeholder="0.0"
+                      value={stakeAmount}
+                      onChange={(e) => setStakeAmount(e.target.value)}
+                      className="h-11 bg-background/60 border-border/40"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setStakeAmount(stakeBalance.formatted)}
+                      className="px-6 font-medium"
+                    >
+                      MAX
+                    </Button>
+                  </div>
+                </div>
+                <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all">
+                  <Lock className="w-4 h-4 mr-2" />
+                  Stake {stakeTokenSymbol}
+                </Button>
+              </>
+            )}
           </TabsContent>
 
           <TabsContent value="unstake" className="space-y-4 mt-4">
-            <div className="space-y-2">
-              <Label htmlFor={`unstake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
-              <div className="flex gap-2">
-                <Input
-                  id={`unstake-${stakeTokenAddress}`}
-                  type="number"
-                  placeholder="0.0"
-                  value={unstakeAmount}
-                  onChange={(e) => setUnstakeAmount(e.target.value)}
-                  className="h-11 bg-background/60 border-border/40"
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUnstakeAmount('0.00')}
-                  className="px-6 font-medium"
-                >
-                  MAX
-                </Button>
+            {!isConnected ? (
+              <div className="py-8 text-center">
+                <p className="text-sm text-muted-foreground mb-4">Connect your wallet to unstake</p>
+                <w3m-button />
               </div>
-            </div>
-            <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all" variant="secondary">
-              <Unlock className="w-4 h-4 mr-2" />
-              Unstake {stakeTokenSymbol}
-            </Button>
+            ) : (
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor={`unstake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      id={`unstake-${stakeTokenAddress}`}
+                      type="number"
+                      placeholder="0.0"
+                      value={unstakeAmount}
+                      onChange={(e) => setUnstakeAmount(e.target.value)}
+                      className="h-11 bg-background/60 border-border/40"
+                    />
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setUnstakeAmount('0.00')}
+                      className="px-6 font-medium"
+                    >
+                      MAX
+                    </Button>
+                  </div>
+                </div>
+                <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all" variant="secondary">
+                  <Unlock className="w-4 h-4 mr-2" />
+                  Unstake {stakeTokenSymbol}
+                </Button>
+              </>
+            )}
           </TabsContent>
         </Tabs>
 
@@ -182,9 +206,11 @@ export function StakingPoolCard({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Pending Rewards</p>
-              <p className="text-base font-semibold text-foreground">0.00 <span className="text-xs font-normal text-muted-foreground">{earnTokenSymbol}</span></p>
+              <p className="text-base font-semibold text-foreground">
+                {isConnected ? '0.00' : '—'} <span className="text-xs font-normal text-muted-foreground">{earnTokenSymbol}</span>
+              </p>
             </div>
-            <Button size="sm" variant="outline" disabled className="font-medium text-sm">
+            <Button size="sm" variant="outline" disabled={!isConnected} className="font-medium text-sm">
               Claim
             </Button>
           </div>
