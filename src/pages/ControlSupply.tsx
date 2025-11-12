@@ -1,19 +1,24 @@
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { OverviewCard } from '@/components/supply/OverviewCard';
-import { CooldownInfo } from '@/components/supply/CooldownInfo';
 import { EventTable } from '@/components/supply/EventTable';
-import { useSupplyOverview, useSupplyEvents, useCooldowns } from '@/hooks/useSupplyController';
+import { BalancesBox } from '@/components/supply/BalancesBox';
+import { DistributionPanel } from '@/components/supply/DistributionPanel';
+import { ProcessAllButton } from '@/components/supply/ProcessAllButton';
+import { useSupplyOverview, useSupplyEvents } from '@/hooks/useSupplyController';
+import { useControllerBalances } from '@/hooks/useControllerBalances';
 import { ADDR } from '@/config/addresses';
-import { Flame, TrendingDown, Vault, Coins, Copy, ExternalLink } from 'lucide-react';
+import { Flame, TrendingDown, Vault, Coins, Copy, ExternalLink, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { shortenAddress } from '@/lib/format';
 
 export default function ControlSupply() {
   const { overview, loading: overviewLoading } = useSupplyOverview();
   const { events, loading: eventsLoading } = useSupplyEvents();
-  const cooldowns = useCooldowns();
+  const balances = useControllerBalances();
 
   const copyAddress = (address: string) => {
     navigator.clipboard.writeText(address);
@@ -27,10 +32,15 @@ export default function ControlSupply() {
       <main className="flex-1 container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-foreground mb-2 flex items-center gap-3">
-              <Flame className="w-8 h-8 text-primary" />
-              Supply Control Monitor
-            </h1>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-4xl font-bold text-foreground flex items-center gap-3">
+                <Flame className="w-8 h-8 text-primary" />
+                Control Supply Monitor
+              </h1>
+              <Badge variant="outline" className="text-xs">
+                PulseChain • Mainnet (369)
+              </Badge>
+            </div>
             <p className="text-muted-foreground">
               Live view of LP locks, buybacks, burns, and routed allocations from CORN's controller
             </p>
@@ -42,7 +52,7 @@ export default function ControlSupply() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Controller Address</CardTitle>
             </CardHeader>
             <CardContent className="flex items-center gap-2">
-              <code className="text-sm font-mono text-foreground">{ADDR.controller}</code>
+              <code className="text-sm font-mono text-foreground">{shortenAddress(ADDR.controller, 8)}</code>
               <Button
                 variant="ghost"
                 size="icon"
@@ -69,14 +79,22 @@ export default function ControlSupply() {
           </Card>
 
           {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+            <OverviewCard
+              title="CORN in Controller"
+              value={balances.cornInController || 0n}
+              decimals={18}
+              symbol="CORN"
+              icon={<span className="text-lg">🌽</span>}
+              tooltip="Current CORN balance ready to be processed"
+            />
             <OverviewCard
               title="LP Burned (Lifetime)"
               value={overview.lpBurned}
               decimals={18}
               symbol="LP"
               icon={<Flame className="w-4 h-4 text-orange-500" />}
-              tooltip="LP tokens are sent to 0xdead (burn), permanently locking liquidity."
+              tooltip="LP tokens sent to 0xdead, permanently locking liquidity"
             />
             <OverviewCard
               title="CORN Burned (Lifetime)"
@@ -84,7 +102,7 @@ export default function ControlSupply() {
               decimals={18}
               symbol="CORN"
               icon={<TrendingDown className="w-4 h-4 text-red-500" />}
-              tooltip="Controller buys CORN with pair tokens and burns it, reducing circulating supply."
+              tooltip="Controller buys CORN and burns it, reducing supply"
             />
             <OverviewCard
               title="Routed → Treasury"
@@ -102,15 +120,70 @@ export default function ControlSupply() {
             />
           </div>
 
-          {/* Cooldown Info */}
-          <div className="mb-6">
-            <CooldownInfo
-              addLpCooldown={cooldowns.addLpCooldown}
-              buybackCooldown={cooldowns.buybackCooldown}
-              lastAddLpAt={cooldowns.lastAddLpAt}
-              lastBuybackAt={cooldowns.lastBuybackAt}
+          {/* Last Processed & Stats */}
+          {overview.lastProcessedTime && (
+            <Card className="mb-6 bg-gradient-to-br from-card to-card/50 border-border/40">
+              <CardHeader>
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Clock className="w-4 h-4" />
+                  Last Processed
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex items-center justify-between">
+                <div>
+                  <div className="text-lg font-semibold">
+                    {new Date(overview.lastProcessedTime * 1000).toLocaleString()}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    Total Transactions: {overview.totalTxCount}
+                  </div>
+                </div>
+                {overview.lastProcessedHash && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    asChild
+                  >
+                    <a
+                      href={`https://scan.pulsechain.com/tx/${overview.lastProcessedHash}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Balances & Distribution */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <BalancesBox
+              cornInController={balances.cornInController}
+              wplsInController={balances.wplsInController}
+              cornInTreasury={balances.cornInTreasury}
+              cornInStaking={balances.cornInStaking}
+              onRefresh={balances.refetchAll}
             />
+            <DistributionPanel />
           </div>
+
+          {/* Action Bar */}
+          <Card className="mb-6 bg-gradient-to-br from-card to-card/50 border-border/40">
+            <CardHeader>
+              <CardTitle>Process Distribution</CardTitle>
+              <CardDescription>
+                Execute the distribution mechanism to process accumulated CORN
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ProcessAllButton
+                cornBalance={balances.cornInController}
+              />
+            </CardContent>
+          </Card>
 
           {/* Activity Feed */}
           <Card className="bg-gradient-to-br from-card to-card/50 border-border/40">
