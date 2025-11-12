@@ -1,61 +1,142 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Lock, Unlock, ArrowRight, Clock } from 'lucide-react';
-import { useFormattedBalance } from '@/hooks/useErc20';
-import { useDexScreenerToken } from '@/hooks/useDexScreener';
-import { formatBalance } from '@/lib/format';
+import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { Lock, Unlock, Sparkles, Clock, AlertCircle } from 'lucide-react';
+import { usePoolInfo, useUserPoolInfo } from '@/hooks/useStakingPools';
+import { useStakingDeposit, useStakingWithdraw, useStakingHarvest, useTokenApproval } from '@/hooks/useStakingActions';
+import { useFormattedBalance, useTokenMeta } from '@/hooks/useErc20';
+import { useTokenPrice, calculateVirtualAPR, calculateVirtualTVL } from '@/hooks/useTokenPrice';
+import { formatUnits } from 'viem';
+import { formatBalance, compactNumber } from '@/lib/format';
+import { toast } from '@/hooks/use-toast';
 import usdcLogo from '@/assets/usdc-logo.png';
 import cornLogo from '@/assets/corn-logo-new.png';
 
 interface StakingPoolCardProps {
-  stakeTokenAddress: `0x${string}`;
-  earnTokenAddress: `0x${string}`;
-  stakeTokenSymbol: string;
-  earnTokenSymbol: string;
-  stakeTokenDecimals?: number;
-  earnTokenDecimals?: number;
+  pid: number;
   walletAddress: `0x${string}` | undefined;
   isConnected: boolean;
+  onRefresh?: () => void;
 }
 
-export function StakingPoolCard({
-  stakeTokenAddress,
-  earnTokenAddress,
-  stakeTokenSymbol,
-  earnTokenSymbol,
-  stakeTokenDecimals,
-  earnTokenDecimals,
-  walletAddress,
-  isConnected,
-}: StakingPoolCardProps) {
+const TOKEN_SYMBOLS: Record<string, string> = {
+  '0xd7661cce8eed01cbaa0188facdde2e46c4ebe4b0': 'CORN',
+  '0xa1077a294dde1b09bb078844df40758a5d0f9a27': 'WPLS',
+  '0x15d38573d2feeb82e7ad5187ab8c1d52810b1f07': 'USDC',
+  '0x3facf37bc7d46fe899a3fe4991c3ee8a8e7ab489': 'veCORN',
+};
+
+const TOKEN_ICONS: Record<string, string> = {
+  CORN: '🌽',
+  WPLS: '⚡',
+  USDC: '⭕',
+  veCORN: '🟡',
+};
+
+export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: StakingPoolCardProps) {
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
+  const [showVirtualAPR, setShowVirtualAPR] = useState(true);
 
-  const stakeBalance = useFormattedBalance(stakeTokenAddress, walletAddress, stakeTokenDecimals);
-  const earnBalance = useFormattedBalance(earnTokenAddress, walletAddress, earnTokenDecimals);
+  const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
+  const { userInfo, refetch: refetchUser } = useUserPoolInfo(pid, walletAddress);
   
-  const { data: stakeTokenData, isLoading: stakeLoading } = useDexScreenerToken(stakeTokenAddress);
-  const { data: earnTokenData, isLoading: earnLoading } = useDexScreenerToken(earnTokenAddress);
+  const stakeTokenMeta = useTokenMeta(pool?.stakeToken ?? '0x0');
+  const rewardTokenMeta = useTokenMeta(pool?.rewardToken ?? '0x0');
+  
+  const stakeBalance = useFormattedBalance(
+    pool?.stakeToken ?? '0x0',
+    walletAddress,
+    stakeTokenMeta.decimals
+  );
 
-  // Custom logo mapping
-  const getTokenLogo = (tokenData: any, tokenSymbol: string) => {
-    if (tokenSymbol === 'USDC') return usdcLogo;
-    if (tokenSymbol === '🌽') return cornLogo;
-    // veCORN will use emoji fallback
-    return tokenData?.logo;
+  const stakeTokenPrice = useTokenPrice(pool?.stakeToken ?? '0x0');
+  const rewardTokenPrice = useTokenPrice(pool?.rewardToken ?? '0x0');
+
+  const { deposit, isPending: depositPending, isSuccess: depositSuccess } = useStakingDeposit();
+  const { withdraw, isPending: withdrawPending, isSuccess: withdrawSuccess } = useStakingWithdraw();
+  const { harvest, isPending: harvestPending, isSuccess: harvestSuccess } = useStakingHarvest();
+  const { allowance, approve, isPending: approvePending, isSuccess: approveSuccess } = useTokenApproval(
+    pool?.stakeToken ?? '0x0',
+    walletAddress
+  );
+
+  useEffect(() => {
+    if (depositSuccess || withdrawSuccess || harvestSuccess || approveSuccess) {
+      refetchPool();
+      refetchUser();
+      stakeBalance.refetch();
+      onRefresh?.();
+      setStakeAmount('');
+      setUnstakeAmount('');
+      
+      if (depositSuccess) toast({ title: 'Deposit Successful', description: 'Your tokens have been staked.' });
+      if (withdrawSuccess) toast({ title: 'Withdraw Successful', description: 'Your tokens have been withdrawn.' });
+      if (harvestSuccess) toast({ title: 'Harvest Successful', description: 'Your rewards have been claimed.' });
+      if (approveSuccess) toast({ title: 'Approval Successful', description: 'You can now deposit tokens.' });
+    }
+  }, [depositSuccess, withdrawSuccess, harvestSuccess, approveSuccess]);
+
+  if (!pool || poolLoading) {
+    return (
+      <Card className="p-6 animate-pulse">
+        <div className="h-64 bg-muted/20 rounded" />
+      </Card>
+    );
+  }
+
+  const stakeSymbol = TOKEN_SYMBOLS[pool.stakeToken.toLowerCase()] || 'TOKEN';
+  const rewardSymbol = TOKEN_SYMBOLS[pool.rewardToken.toLowerCase()] || 'TOKEN';
+  const isVirtualReward = rewardSymbol === 'WPLS' || rewardSymbol === 'USDC';
+
+  const stakedFormatted = formatUnits(userInfo.amount, stakeTokenMeta.decimals || 18);
+  const pendingFormatted = formatUnits(userInfo.pending, rewardTokenMeta.decimals || 18);
+  const rpsFormatted = formatUnits(pool.rewardsPerSecond, rewardTokenMeta.decimals || 18);
+
+  const virtualAPR = showVirtualAPR && stakeTokenMeta.decimals && rewardTokenMeta.decimals
+    ? calculateVirtualAPR(
+        pool.rewardsPerSecond,
+        rewardTokenPrice,
+        pool.totalStaked,
+        stakeTokenPrice,
+        rewardTokenMeta.decimals,
+        stakeTokenMeta.decimals
+      )
+    : 0;
+
+  const virtualTVL = stakeTokenMeta.decimals
+    ? calculateVirtualTVL(pool.totalStaked, stakeTokenPrice, stakeTokenMeta.decimals)
+    : 0;
+
+  const getTokenLogo = (symbol: string) => {
+    if (symbol === 'USDC') return usdcLogo;
+    if (symbol === 'CORN') return cornLogo;
+    return null;
   };
 
-  console.log(`StakingPoolCard - ${stakeTokenSymbol} → ${earnTokenSymbol}:`, {
-    stakeTokenData,
-    earnTokenData,
-    stakeLoading,
-    earnLoading,
-  });
+  const handleDeposit = async () => {
+    if (!stakeAmount || !stakeTokenMeta.decimals) return;
+    await deposit(pid, stakeAmount, stakeTokenMeta.decimals);
+  };
+
+  const handleWithdraw = async () => {
+    if (!unstakeAmount || !stakeTokenMeta.decimals) return;
+    await withdraw(pid, unstakeAmount, stakeTokenMeta.decimals);
+  };
+
+  const handleHarvest = async () => {
+    await harvest(pid);
+  };
+
+  const handleApprove = async () => {
+    if (!stakeAmount || !stakeTokenMeta.decimals) return;
+    await approve(stakeAmount, stakeTokenMeta.decimals);
+  };
 
   return (
     <Card className="group relative overflow-hidden border-border/40 bg-gradient-card backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
@@ -64,115 +145,120 @@ export function StakingPoolCard({
       <div className="relative p-6">
         {/* Pool Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4 flex-1">
-            {/* Live Soon Badge */}
-            <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-corn-gold/10 border border-corn-gold/30 backdrop-blur-sm">
-              <Clock className="w-3.5 h-3.5 text-corn-gold animate-pulse" />
-              <span className="text-xs font-semibold text-corn-gold">Live Soon</span>
-            </div>
-            <div className="flex items-center -space-x-3">
-              {stakeLoading ? (
-                <Skeleton className="w-12 h-12 rounded-full" />
-              ) : getTokenLogo(stakeTokenData, stakeTokenSymbol) ? (
-                <img 
-                  src={getTokenLogo(stakeTokenData, stakeTokenSymbol)} 
-                  alt={stakeTokenSymbol} 
-                  className="w-12 h-12 rounded-full border-2 border-background object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
-                  onError={(e) => {
-                    console.error(`Failed to load image for ${stakeTokenSymbol}:`, getTokenLogo(stakeTokenData, stakeTokenSymbol));
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <div className={`w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${getTokenLogo(stakeTokenData, stakeTokenSymbol) ? 'hidden' : ''}`}>
-                {stakeTokenSymbol === 'veCORN' ? '🌽' : stakeTokenSymbol === '🌽' ? 'CORN' : stakeTokenSymbol.slice(0, 2)}
-              </div>
-              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 z-10">
-                <ArrowRight className="w-4 h-4 text-muted-foreground" />
-              </div>
-              {earnLoading ? (
-                <Skeleton className="w-12 h-12 rounded-full" />
-              ) : getTokenLogo(earnTokenData, earnTokenSymbol) ? (
-                <img 
-                  src={getTokenLogo(earnTokenData, earnTokenSymbol)} 
-                  alt={earnTokenSymbol} 
-                  className="w-12 h-12 rounded-full border-2 border-background object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
-                  onError={(e) => {
-                    console.error(`Failed to load image for ${earnTokenSymbol}:`, getTokenLogo(earnTokenData, earnTokenSymbol));
-                    e.currentTarget.style.display = 'none';
-                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                  }}
-                />
-              ) : null}
-              <div className={`w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${getTokenLogo(earnTokenData, earnTokenSymbol) ? 'hidden' : ''}`}>
-                {earnTokenSymbol === 'veCORN' ? '🌽' : earnTokenSymbol === '🌽' ? 'CORN' : earnTokenSymbol.slice(0, 2)}
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              {getTokenLogo(stakeSymbol) ? (
+                <img src={getTokenLogo(stakeSymbol)!} alt={stakeSymbol} className="w-10 h-10 rounded-full" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xl">
+                  {TOKEN_ICONS[stakeSymbol]}
+                </div>
+              )}
+              <span className="text-lg font-bold">→</span>
+              {getTokenLogo(rewardSymbol) ? (
+                <img src={getTokenLogo(rewardSymbol)!} alt={rewardSymbol} className="w-10 h-10 rounded-full" />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-xl">
+                  {TOKEN_ICONS[rewardSymbol]}
+                </div>
+              )}
             </div>
             <div>
-              <p className="text-sm font-semibold text-foreground mb-0.5">Stake {stakeTokenSymbol}</p>
-              <p className="text-xs text-muted-foreground">Earn {earnTokenSymbol}</p>
+              <p className="text-sm font-semibold">{pool.label || `Stake ${stakeSymbol}`}</p>
+              <p className="text-xs text-muted-foreground">Earn {rewardSymbol}</p>
             </div>
+          </div>
+          <div className="flex flex-col gap-2 items-end">
+            {isVirtualReward && (
+              <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/30">
+                <Sparkles className="w-3 h-3 mr-1" />
+                Virtual Reward
+              </Badge>
+            )}
+            {pool.paused && (
+              <Badge variant="destructive" className="text-xs">
+                <AlertCircle className="w-3 h-3 mr-1" />
+                Paused
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <div className="p-3 rounded-lg bg-background/60 border border-border/40">
+            <p className="text-xs text-muted-foreground mb-1">APR</p>
+            <p className="text-sm font-bold text-primary">
+              {virtualAPR > 0 ? `${virtualAPR.toFixed(2)}%` : '—'}
+            </p>
+          </div>
+          <div className="p-3 rounded-lg bg-background/60 border border-border/40">
+            <p className="text-xs text-muted-foreground mb-1">TVL</p>
+            <p className="text-sm font-bold">${compactNumber(virtualTVL)}</p>
+          </div>
+          <div className="p-3 rounded-lg bg-background/60 border border-border/40">
+            <p className="text-xs text-muted-foreground mb-1">RPS</p>
+            <p className="text-sm font-bold">{parseFloat(rpsFormatted).toFixed(6)}</p>
           </div>
         </div>
 
         {/* Balance Display */}
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
-            <p className="text-xs font-medium text-muted-foreground mb-1.5">Available</p>
-            <p className="text-base font-semibold text-foreground">
-              {isConnected ? formatBalance(stakeBalance.formatted) : '—'}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
+          <div className="p-4 rounded-lg bg-background/60 border border-border/40">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Available</p>
+            <p className="text-base font-semibold">{isConnected ? formatBalance(stakeBalance.formatted) : '—'}</p>
+            <p className="text-xs text-muted-foreground">{stakeSymbol}</p>
           </div>
-          <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
-            <p className="text-xs font-medium text-muted-foreground mb-1.5">Staked</p>
-            <p className="text-base font-semibold text-foreground">
-              {isConnected ? '0.00' : '—'}
-            </p>
-            <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
+          <div className="p-4 rounded-lg bg-background/60 border border-border/40">
+            <p className="text-xs font-medium text-muted-foreground mb-1">Staked</p>
+            <p className="text-base font-semibold">{isConnected ? formatBalance(stakedFormatted) : '—'}</p>
+            <p className="text-xs text-muted-foreground">{stakeSymbol}</p>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs defaultValue="stake" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-            <TabsTrigger value="stake" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Stake</TabsTrigger>
-            <TabsTrigger value="unstake" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Unstake</TabsTrigger>
+            <TabsTrigger value="stake">Stake</TabsTrigger>
+            <TabsTrigger value="unstake">Unstake</TabsTrigger>
           </TabsList>
 
           <TabsContent value="stake" className="space-y-4 mt-4">
             {!isConnected ? (
               <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground mb-4">Connect your wallet to stake</p>
+                <p className="text-sm text-muted-foreground mb-4">Connect wallet to stake</p>
                 <w3m-button />
               </div>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor={`stake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
+                  <Label htmlFor={`stake-${pid}`}>Amount</Label>
                   <div className="flex gap-2">
                     <Input
-                      id={`stake-${stakeTokenAddress}`}
+                      id={`stake-${pid}`}
                       type="number"
                       placeholder="0.0"
                       value={stakeAmount}
                       onChange={(e) => setStakeAmount(e.target.value)}
-                      className="h-11 bg-background/60 border-border/40"
+                      disabled={pool.paused}
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setStakeAmount(stakeBalance.formatted)}
-                      className="px-6 font-medium"
+                      disabled={pool.paused}
                     >
                       MAX
                     </Button>
                   </div>
                 </div>
-                <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all">
+                <Button
+                  className="w-full"
+                  onClick={handleDeposit}
+                  disabled={!stakeAmount || depositPending || pool.paused}
+                >
                   <Lock className="w-4 h-4 mr-2" />
-                  Stake {stakeTokenSymbol}
+                  {depositPending ? 'Staking...' : `Stake ${stakeSymbol}`}
                 </Button>
               </>
             )}
@@ -181,35 +267,38 @@ export function StakingPoolCard({
           <TabsContent value="unstake" className="space-y-4 mt-4">
             {!isConnected ? (
               <div className="py-8 text-center">
-                <p className="text-sm text-muted-foreground mb-4">Connect your wallet to unstake</p>
+                <p className="text-sm text-muted-foreground mb-4">Connect wallet to unstake</p>
                 <w3m-button />
               </div>
             ) : (
               <>
                 <div className="space-y-2">
-                  <Label htmlFor={`unstake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
+                  <Label htmlFor={`unstake-${pid}`}>Amount</Label>
                   <div className="flex gap-2">
                     <Input
-                      id={`unstake-${stakeTokenAddress}`}
+                      id={`unstake-${pid}`}
                       type="number"
                       placeholder="0.0"
                       value={unstakeAmount}
                       onChange={(e) => setUnstakeAmount(e.target.value)}
-                      className="h-11 bg-background/60 border-border/40"
                     />
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setUnstakeAmount('0.00')}
-                      className="px-6 font-medium"
+                      onClick={() => setUnstakeAmount(stakedFormatted)}
                     >
                       MAX
                     </Button>
                   </div>
                 </div>
-                <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all" variant="secondary">
+                <Button
+                  className="w-full"
+                  variant="secondary"
+                  onClick={handleWithdraw}
+                  disabled={!unstakeAmount || withdrawPending || userInfo.amount === 0n}
+                >
                   <Unlock className="w-4 h-4 mr-2" />
-                  Unstake {stakeTokenSymbol}
+                  {withdrawPending ? 'Unstaking...' : `Unstake ${stakeSymbol}`}
                 </Button>
               </>
             )}
@@ -221,15 +310,31 @@ export function StakingPoolCard({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Pending Rewards</p>
-              <p className="text-base font-semibold text-foreground">
-                {isConnected ? '0.00' : '—'} <span className="text-xs font-normal text-muted-foreground">{earnTokenSymbol}</span>
+              <p className="text-base font-semibold">
+                {isConnected ? formatBalance(pendingFormatted, 6) : '—'}{' '}
+                <span className="text-xs font-normal text-muted-foreground">{rewardSymbol}</span>
               </p>
             </div>
-            <Button size="sm" variant="outline" disabled={!isConnected} className="font-medium text-sm">
-              Claim
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleHarvest}
+              disabled={!isConnected || harvestPending || userInfo.pending === 0n || pool.paused}
+            >
+              {harvestPending ? 'Claiming...' : 'Claim'}
             </Button>
           </div>
         </div>
+
+        {/* End Time */}
+        {pool.endTime > 0n && (
+          <div className="mt-4 p-3 rounded-lg bg-muted/20 border border-border/30">
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <Clock className="w-4 h-4" />
+              <span>Epoch ends: {new Date(Number(pool.endTime) * 1000).toLocaleString()}</span>
+            </div>
+          </div>
+        )}
       </div>
     </Card>
   );

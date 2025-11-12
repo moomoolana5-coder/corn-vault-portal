@@ -2,67 +2,102 @@ import { useAccount } from 'wagmi';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { StakingPoolCard } from '@/components/StakingPoolCard';
+import { useAllPools, useUserPoolInfo } from '@/hooks/useStakingPools';
+import { useStakingClaimAll } from '@/hooks/useStakingActions';
+import { AlertCircle, Coins } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
+import { formatUnits } from 'viem';
 import { useTokenMeta } from '@/hooks/useErc20';
-import { CORN_ADDRESS, VECORN_ADDRESS, WPLS_ADDRESS, USDC_ADDRESS } from '@/lib/chains';
-import { AlertCircle } from 'lucide-react';
-
-const stakingPools = [
-  { stakeToken: CORN_ADDRESS, earnToken: VECORN_ADDRESS, stakeSymbol: '🌽', earnSymbol: 'veCORN' },
-  { stakeToken: CORN_ADDRESS, earnToken: WPLS_ADDRESS, stakeSymbol: '🌽', earnSymbol: 'WPLS' },
-  { stakeToken: CORN_ADDRESS, earnToken: USDC_ADDRESS, stakeSymbol: '🌽', earnSymbol: 'USDC' },
-  { stakeToken: VECORN_ADDRESS, earnToken: WPLS_ADDRESS, stakeSymbol: 'veCORN', earnSymbol: 'WPLS' },
-  { stakeToken: USDC_ADDRESS, earnToken: CORN_ADDRESS, stakeSymbol: 'USDC', earnSymbol: '🌽' },
-  { stakeToken: WPLS_ADDRESS, earnToken: CORN_ADDRESS, stakeSymbol: 'WPLS', earnSymbol: '🌽' },
-];
+import { formatBalance, compactNumber } from '@/lib/format';
 
 export default function Staking() {
   const { address, isConnected } = useAccount();
-  const cornMeta = useTokenMeta(CORN_ADDRESS);
-  const veCornMeta = useTokenMeta(VECORN_ADDRESS);
-  const wplsMeta = useTokenMeta(WPLS_ADDRESS);
-  const usdcMeta = useTokenMeta(USDC_ADDRESS);
+  const { pools, isLoading: poolsLoading, refetch } = useAllPools();
+  const { claimAll, isPending: claimAllPending } = useStakingClaimAll();
+
+  const handleClaimAll = async () => {
+    const pids = pools.map((_, i) => i);
+    await claimAll(pids);
+    toast({ title: 'Claim All Successful', description: 'All rewards have been claimed.' });
+    refetch();
+  };
+
+  // Calculate total pending rewards across all pools
+  const totalPendingRewards = pools.reduce((acc, pool, pid) => {
+    const { userInfo } = useUserPoolInfo(pid, address);
+    return acc + Number(userInfo.pending);
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
       <div className="container mx-auto px-4 py-6 md:py-12">
         <div className="max-w-7xl mx-auto">
+          {/* Header */}
           <div className="text-center mb-8 md:mb-12 px-4">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <Badge variant="outline" className="bg-primary/10 border-primary/30">
+                <Coins className="w-3 h-3 mr-1" />
+                PulseChain • Mainnet (369)
+              </Badge>
+            </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-4 bg-gradient-corn bg-clip-text text-transparent">
               Staking Pools
             </h1>
-            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto mb-6">
               Stake your tokens to earn rewards across multiple pools
             </p>
+            
+            {/* Stats & Claim All */}
+            {isConnected && pools.length > 0 && (
+              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+                <div className="flex items-center gap-6 px-6 py-3 rounded-lg bg-background/60 border border-border/40">
+                  <div>
+                    <p className="text-xs text-muted-foreground">Active Pools</p>
+                    <p className="text-lg font-bold">{pools.filter(p => !p.paused).length}</p>
+                  </div>
+                  <div className="h-8 w-px bg-border/40" />
+                  <div>
+                    <p className="text-xs text-muted-foreground">Total Pools</p>
+                    <p className="text-lg font-bold">{pools.length}</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleClaimAll}
+                  disabled={claimAllPending || pools.length === 0}
+                  className="shadow-md hover:shadow-lg"
+                >
+                  {claimAllPending ? 'Claiming...' : 'Claim All Rewards'}
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Staking Pools Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-            {stakingPools.map((pool, index) => {
-              const getTokenDecimals = (address: `0x${string}`) => {
-                if (address === CORN_ADDRESS) return cornMeta.decimals;
-                if (address === VECORN_ADDRESS) return veCornMeta.decimals;
-                if (address === WPLS_ADDRESS) return wplsMeta.decimals;
-                if (address === USDC_ADDRESS) return usdcMeta.decimals;
-                return undefined;
-              };
-
-              return (
+          {poolsLoading ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Loading pools...</p>
+            </div>
+          ) : pools.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">No staking pools available</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+              {pools.map((pool) => (
                 <StakingPoolCard
-                  key={`${pool.stakeToken}-${pool.earnToken}-${index}`}
-                  stakeTokenAddress={pool.stakeToken}
-                  earnTokenAddress={pool.earnToken}
-                  stakeTokenSymbol={pool.stakeSymbol}
-                  earnTokenSymbol={pool.earnSymbol}
-                  stakeTokenDecimals={getTokenDecimals(pool.stakeToken)}
-                  earnTokenDecimals={getTokenDecimals(pool.earnToken)}
+                  key={pool.pid}
+                  pid={pool.pid}
                   walletAddress={address}
                   isConnected={isConnected}
+                  onRefresh={refetch}
                 />
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Info Card */}
           <Card className="p-6 md:p-8 border-accent/20 bg-gradient-card backdrop-blur-sm shadow-lg">
@@ -77,23 +112,27 @@ export default function Staking() {
                 <ul className="space-y-2 md:space-y-3 text-xs sm:text-sm text-muted-foreground">
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Choose from multiple staking pools with different reward tokens</span>
+                    <span>Pools are dynamically loaded from on-chain contract data</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Earn rewards from various token pairs</span>
+                    <span>Virtual WPLS/USDC rewards are UI labels; actual rewards follow contract config</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Stake and unstake anytime with no lock periods</span>
+                    <span>APR/TVL calculations use virtual pricing for display purposes</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Claim your rewards whenever you want</span>
+                    <span>Stake and unstake anytime; pools may have different reward schedules</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>All pools are non-custodial and secure</span>
+                    <span>Paused pools allow withdrawals but not deposits or harvests</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
+                    <span>All interactions are non-custodial and secured by smart contracts</span>
                   </li>
                 </ul>
               </div>
