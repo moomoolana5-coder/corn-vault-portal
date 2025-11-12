@@ -1,7 +1,8 @@
-import { useReadContract, useReadContracts } from 'wagmi';
+import { useReadContract } from 'wagmi';
 import { ADDR } from '@/config/addresses';
 import { stakingAbi } from '@/abi/StakingContract';
 import { formatUnits } from 'viem';
+import { useState, useEffect } from 'react';
 
 export interface PoolInfo {
   pid: number;
@@ -66,97 +67,100 @@ export function usePoolInfo(pid: number) {
 }
 
 export function useUserPoolInfo(pid: number, userAddress: `0x${string}` | undefined) {
-  const contracts: any = userAddress ? [
-    {
-      address: ADDR.staking as `0x${string}`,
-      abi: stakingAbi,
-      functionName: 'userInfo',
-      args: [BigInt(pid), userAddress],
-    },
-    {
-      address: ADDR.staking as `0x${string}`,
-      abi: stakingAbi,
-      functionName: 'pendingReward',
-      args: [BigInt(pid), userAddress],
-    },
-  ] : [];
-
-  const { data, isLoading, error, refetch } = useReadContracts({
-    contracts,
+  // Use individual reads instead of useReadContracts to avoid type inference issues
+  const { data: userInfoData, isLoading: userInfoLoading } = useReadContract({
+    address: ADDR.staking as `0x${string}`,
+    abi: stakingAbi,
+    functionName: 'userInfo',
+    args: [BigInt(pid), userAddress!],
     query: {
       enabled: !!userAddress,
     },
   });
 
-  if (!data || !userAddress) {
+  const { data: pendingData, isLoading: pendingLoading, refetch } = useReadContract({
+    address: ADDR.staking as `0x${string}`,
+    abi: stakingAbi,
+    functionName: 'pendingReward',
+    args: [BigInt(pid), userAddress!],
+    query: {
+      enabled: !!userAddress,
+    },
+  });
+
+  if (!userAddress) {
     return {
       userInfo: { amount: 0n, rewardDebt: 0n, pending: 0n },
-      isLoading,
-      error,
+      isLoading: false,
+      error: null,
       refetch,
     };
   }
 
-  const userInfoData = data[0].result as [bigint, bigint] | undefined;
-  const pendingData = data[1].result as bigint | undefined;
+  const userData = userInfoData as [bigint, bigint] | undefined;
 
   const userInfo: UserPoolInfo = {
-    amount: userInfoData?.[0] ?? 0n,
-    rewardDebt: userInfoData?.[1] ?? 0n,
-    pending: pendingData ?? 0n,
+    amount: userData?.[0] ?? 0n,
+    rewardDebt: userData?.[1] ?? 0n,
+    pending: (pendingData as bigint) ?? 0n,
   };
 
-  return { userInfo, isLoading, error, refetch };
+  return { 
+    userInfo, 
+    isLoading: userInfoLoading || pendingLoading, 
+    error: null,
+    refetch 
+  };
 }
 
 export function useAllPools() {
   const { poolLength, isLoading: lengthLoading } = usePoolLength();
   
-  const poolContracts = poolLength > 0 ? Array.from({ length: poolLength }, (_, i) => ({
-    address: ADDR.staking as `0x${string}`,
-    abi: stakingAbi,
-    functionName: 'pools' as const,
-    args: [BigInt(i)] as readonly [bigint],
-  })) : [];
+  // Hardcode max 20 pools and always call hooks unconditionally
+  const MAX_POOLS = 20;
+  
+  const pool0 = usePoolInfo(0);
+  const pool1 = usePoolInfo(1);
+  const pool2 = usePoolInfo(2);
+  const pool3 = usePoolInfo(3);
+  const pool4 = usePoolInfo(4);
+  const pool5 = usePoolInfo(5);
+  const pool6 = usePoolInfo(6);
+  const pool7 = usePoolInfo(7);
+  const pool8 = usePoolInfo(8);
+  const pool9 = usePoolInfo(9);
+  const pool10 = usePoolInfo(10);
+  const pool11 = usePoolInfo(11);
+  const pool12 = usePoolInfo(12);
+  const pool13 = usePoolInfo(13);
+  const pool14 = usePoolInfo(14);
+  const pool15 = usePoolInfo(15);
+  const pool16 = usePoolInfo(16);
+  const pool17 = usePoolInfo(17);
+  const pool18 = usePoolInfo(18);
+  const pool19 = usePoolInfo(19);
 
-  const { data, isLoading, error, refetch } = useReadContracts({
-    contracts: poolContracts as any,
-    query: {
-      enabled: poolLength > 0,
-    },
-  });
+  const allPoolResults = [
+    pool0, pool1, pool2, pool3, pool4, pool5, pool6, pool7, pool8, pool9,
+    pool10, pool11, pool12, pool13, pool14, pool15, pool16, pool17, pool18, pool19
+  ];
 
-  const pools: PoolInfo[] = data?.map((result, i) => {
-    if (!result.result) return null;
-    const poolData = result.result as readonly [
-      `0x${string}`,
-      `0x${string}`,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      bigint,
-      boolean,
-      string
-    ];
-    return {
-      pid: i,
-      stakeToken: poolData[0],
-      rewardToken: poolData[1],
-      accRewardPerShare: poolData[2],
-      lastTime: poolData[3],
-      rewardsPerSecond: poolData[4],
-      endTime: poolData[5],
-      totalStaked: poolData[6],
-      paused: poolData[7],
-      label: poolData[8],
-    };
-  }).filter(Boolean) as PoolInfo[] ?? [];
+  // Only include pools up to poolLength
+  const pools = allPoolResults
+    .slice(0, poolLength)
+    .map(result => result.pool)
+    .filter(Boolean) as PoolInfo[];
+
+  const isLoading = lengthLoading || allPoolResults.slice(0, poolLength).some(r => r.isLoading);
+
+  const refetch = () => {
+    allPoolResults.forEach(r => r.refetch());
+  };
 
   return {
     pools,
-    isLoading: lengthLoading || isLoading,
-    error,
+    isLoading,
+    error: null,
     refetch,
   };
 }
