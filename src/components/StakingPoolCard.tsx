@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Lock, Unlock, ArrowRight } from 'lucide-react';
+import { Lock, Unlock, ArrowRight, Clock } from 'lucide-react';
 import { useFormattedBalance } from '@/hooks/useErc20';
 import { useDexScreenerToken } from '@/hooks/useDexScreener';
 import { formatBalance } from '@/lib/format';
@@ -54,7 +54,12 @@ export function StakingPoolCard({
       <div className="relative p-6">
         {/* Pool Header */}
         <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            {/* Live Soon Badge */}
+            <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-corn-gold/10 border border-corn-gold/30 backdrop-blur-sm">
+              <Clock className="w-3.5 h-3.5 text-corn-gold animate-pulse" />
+              <span className="text-xs font-semibold text-corn-gold">Live Soon</span>
+            </div>
             <div className="flex items-center -space-x-3">
               {stakeLoading ? (
                 <Skeleton className="w-12 h-12 rounded-full" />
