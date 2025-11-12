@@ -22,11 +22,10 @@ export function ProcessAllButton({ cornBalance, disabled }: ProcessAllButtonProp
   const handleProcessAll = () => {
     if (isDisabled || !address) return;
 
-    writeContract({
+    (writeContract as any)({
       address: ADDR.controller as `0x${string}`,
-      abi: ControllerABI as any,
+      abi: ControllerABI,
       functionName: 'processAll',
-      args: [],
     });
   };
 
