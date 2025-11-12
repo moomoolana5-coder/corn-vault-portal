@@ -121,7 +121,10 @@ export function useTokenApproval(tokenAddress: `0x${string}`, userAddress: `0x${
 
   const approve = async (amount: string, decimals: number) => {
     try {
-      const amountBigInt = parseUnits(amount, decimals);
+      // Use max uint256 for unlimited approval
+      const amountBigInt = amount === 'max' 
+        ? BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
+        : parseUnits(amount, decimals);
       
       writeContract({
         address: tokenAddress,

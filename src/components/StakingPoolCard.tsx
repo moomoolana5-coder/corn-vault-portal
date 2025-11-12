@@ -11,7 +11,7 @@ import { usePoolInfo, useUserPoolInfo } from '@/hooks/useStakingPools';
 import { useStakingDeposit, useStakingWithdraw, useStakingHarvest, useTokenApproval } from '@/hooks/useStakingActions';
 import { useFormattedBalance, useTokenMeta } from '@/hooks/useErc20';
 import { useTokenPrice, calculateVirtualAPR, calculateVirtualTVL } from '@/hooks/useTokenPrice';
-import { formatUnits } from 'viem';
+import { formatUnits, parseUnits } from 'viem';
 import { formatBalance, compactNumber } from '@/lib/format';
 import { toast } from '@/hooks/use-toast';
 import usdcLogo from '@/assets/usdc-logo.png';
@@ -62,7 +62,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const { deposit, isPending: depositPending, isSuccess: depositSuccess } = useStakingDeposit();
   const { withdraw, isPending: withdrawPending, isSuccess: withdrawSuccess } = useStakingWithdraw();
   const { harvest, isPending: harvestPending, isSuccess: harvestSuccess } = useStakingHarvest();
-  const { allowance, approve, isPending: approvePending, isSuccess: approveSuccess } = useTokenApproval(
+  const { allowance, approve, isPending: approvePending, isSuccess: approveSuccess, refetch: refetchAllowance } = useTokenApproval(
     pool?.stakeToken ?? '0x0',
     walletAddress
   );
@@ -72,6 +72,14 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
       refetchPool();
       refetchUser();
       stakeBalance.refetch();
+      
+      // Refetch allowance after approve success
+      if (approveSuccess) {
+        setTimeout(() => {
+          refetchAllowance();
+        }, 1000);
+      }
+      
       onRefresh?.();
       setStakeAmount('');
       setUnstakeAmount('');
@@ -79,7 +87,9 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
       if (depositSuccess) toast({ title: 'Deposit Successful', description: 'Your tokens have been staked.' });
       if (withdrawSuccess) toast({ title: 'Withdraw Successful', description: 'Your tokens have been withdrawn.' });
       if (harvestSuccess) toast({ title: 'Harvest Successful', description: 'Your rewards have been claimed.' });
-      if (approveSuccess) toast({ title: 'Approval Successful', description: 'You can now deposit tokens.' });
+      if (approveSuccess) {
+        toast({ title: 'Approval Successful', description: 'You can now stake your tokens.' });
+      }
     }
   }, [depositSuccess, withdrawSuccess, harvestSuccess, approveSuccess]);
 
@@ -137,7 +147,8 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
 
   const handleApprove = async () => {
     if (!stakeAmount || !stakeTokenMeta.decimals) return;
-    await approve(stakeAmount, stakeTokenMeta.decimals);
+    // Approve max uint256 for unlimited allowance (common practice)
+    await approve('max', stakeTokenMeta.decimals);
   };
 
   return (
@@ -251,6 +262,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                     <Input
                       id={`stake-${pid}`}
                       type="number"
+                      step="any"
                       placeholder="0.0"
                       value={stakeAmount}
                       onChange={(e) => setStakeAmount(e.target.value)}
@@ -265,30 +277,64 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                       MAX
                     </Button>
                   </div>
+                  {stakeBalance.formatted && parseFloat(stakeBalance.formatted) > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Available: {formatBalance(stakeBalance.formatted)} {stakeSymbol}
+                    </p>
+                  )}
                 </div>
                 {/* Check if approval is needed */}
-                {allowance !== undefined && 
-                 stakeAmount && 
-                 stakeTokenMeta.decimals &&
-                 BigInt(Math.floor(parseFloat(stakeAmount) * Math.pow(10, stakeTokenMeta.decimals))) > allowance ? (
-                  <Button
-                    className="w-full"
-                    onClick={handleApprove}
-                    disabled={!stakeAmount || approvePending || pool.paused}
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    {approvePending ? 'Approving...' : `Approve ${stakeSymbol}`}
-                  </Button>
-                ) : (
-                  <Button
-                    className="w-full"
-                    onClick={handleDeposit}
-                    disabled={!stakeAmount || depositPending || pool.paused}
-                  >
-                    <Lock className="w-4 h-4 mr-2" />
-                    {depositPending ? 'Staking...' : `Stake ${stakeSymbol}`}
-                  </Button>
-                )}
+                {(() => {
+                  if (!stakeAmount || !stakeTokenMeta.decimals) {
+                    return (
+                      <Button
+                        className="w-full"
+                        disabled
+                      >
+                        <Lock className="w-4 h-4 mr-2" />
+                        Enter Amount
+                      </Button>
+                    );
+                  }
+
+                  // Parse input amount
+                  const inputAmount = parseUnits(stakeAmount, stakeTokenMeta.decimals);
+                  const needsApproval = !allowance || allowance < inputAmount;
+
+                  if (needsApproval) {
+                    return (
+                      <>
+                        {allowance !== undefined && allowance > 0n && (
+                          <p className="text-xs text-muted-foreground">
+                            Current allowance: {formatUnits(allowance, stakeTokenMeta.decimals)} {stakeSymbol}
+                          </p>
+                        )}
+                        <Button
+                          className="w-full"
+                          onClick={handleApprove}
+                          disabled={approvePending || pool.paused}
+                        >
+                          <Lock className="w-4 h-4 mr-2" />
+                          {approvePending ? 'Approving...' : `Approve ${stakeSymbol}`}
+                        </Button>
+                        <p className="text-xs text-center text-muted-foreground">
+                          Approval needed before staking
+                        </p>
+                      </>
+                    );
+                  }
+
+                  return (
+                    <Button
+                      className="w-full"
+                      onClick={handleDeposit}
+                      disabled={depositPending || pool.paused}
+                    >
+                      <Lock className="w-4 h-4 mr-2" />
+                      {depositPending ? 'Staking...' : `Stake ${stakeSymbol}`}
+                    </Button>
+                  );
+                })()}
               </>
             )}
           </TabsContent>
