@@ -37,6 +37,13 @@ export function Navbar() {
               Staking
             </NavLink>
             <NavLink
+              to="/admin"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              Admin
+            </NavLink>
+            <NavLink
               to="/control-supply"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               activeClassName="text-primary"
@@ -84,6 +91,14 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
               >
                 Staking
+              </NavLink>
+              <NavLink
+                to="/admin"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                activeClassName="text-primary"
+                onClick={() => setIsOpen(false)}
+              >
+                Admin
               </NavLink>
               <NavLink
                 to="/control-supply"

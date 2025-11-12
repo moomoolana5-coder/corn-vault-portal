@@ -80,4 +80,45 @@ export const stakingAbi = [
     stateMutability: 'nonpayable',
     type: 'function',
   },
+  {
+    inputs: [],
+    name: 'owner',
+    outputs: [{ internalType: 'address', name: '', type: 'address' }],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'pid', type: 'uint256' },
+      { internalType: 'uint256', name: 'rewardsPerSecond', type: 'uint256' },
+    ],
+    name: 'setRewardsPerSecond',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      { internalType: 'uint256', name: 'pid', type: 'uint256' },
+      { internalType: 'uint256', name: 'endTime', type: 'uint256' },
+    ],
+    name: 'setEndTime',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'pid', type: 'uint256' }],
+    name: 'pausePool',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [{ internalType: 'uint256', name: 'pid', type: 'uint256' }],
+    name: 'unpausePool',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
 ] as const;
