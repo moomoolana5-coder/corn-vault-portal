@@ -132,8 +132,57 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   };
 
   const handleDeposit = async () => {
-    if (!stakeAmount || !stakeTokenMeta.decimals) return;
-    await deposit(pid, stakeAmount, stakeTokenMeta.decimals);
+    if (!stakeAmount || !stakeTokenMeta.decimals) {
+      toast({
+        title: 'Invalid Amount',
+        description: 'Please enter a valid stake amount',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Validate amount
+      const amountBigInt = parseUnits(stakeAmount, stakeTokenMeta.decimals);
+      
+      if (amountBigInt <= 0n) {
+        toast({
+          title: 'Invalid Amount',
+          description: 'Amount must be greater than 0',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check balance
+      if (stakeBalance.balance && amountBigInt > stakeBalance.balance) {
+        toast({
+          title: 'Insufficient Balance',
+          description: `You only have ${formatBalance(stakeBalance.formatted)} ${stakeSymbol}`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check allowance
+      if (!allowance || allowance < amountBigInt) {
+        toast({
+          title: 'Approval Required',
+          description: 'Please approve tokens first',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      await deposit(pid, stakeAmount, stakeTokenMeta.decimals);
+    } catch (error) {
+      console.error('Deposit error:', error);
+      toast({
+        title: 'Deposit Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleWithdraw = async () => {
@@ -328,7 +377,12 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                     <Button
                       className="w-full"
                       onClick={handleDeposit}
-                      disabled={depositPending || pool.paused}
+                      disabled={
+                        depositPending || 
+                        pool.paused || 
+                        !stakeBalance.balance || 
+                        (stakeBalance.balance && inputAmount > stakeBalance.balance)
+                      }
                     >
                       <Lock className="w-4 h-4 mr-2" />
                       {depositPending ? 'Staking...' : `Stake ${stakeSymbol}`}
