@@ -6,14 +6,14 @@ export function CornBadge() {
     <Link to="/" className="inline-flex items-center gap-3 group">
       <img 
         src={cornLogo} 
-        alt="CORN VAULT" 
+        alt="CORN PROTOCOL" 
         className="w-12 h-12 transition-transform group-hover:scale-110"
       />
       <div className="flex flex-col">
         <span className="text-xl font-bold bg-gradient-corn bg-clip-text text-transparent">
-          CORN VAULT
+          CORN PROTOCOL
         </span>
-        <span className="text-xs text-muted-foreground">Stake. Access. Govern.</span>
+        <span className="text-xs text-muted-foreground">Multi-Pool Staking</span>
       </div>
     </Link>
   );

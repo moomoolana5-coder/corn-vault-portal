@@ -41,7 +41,7 @@ export default function Home() {
         {/* Hero Section */}
         <section className="text-center mb-12 md:mb-20 px-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-corn bg-clip-text text-transparent">
-            CORN VAULT
+            CORN PROTOCOL
           </h1>
           <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto">
             Multi-pool staking platform on PulseChain. Stake CORN, veCORN, WPLS, and USDC 
@@ -124,10 +124,10 @@ export default function Home() {
         {/* About Section */}
         <section className="mb-16">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold mb-6 text-center text-foreground">What is CORN Vault?</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center text-foreground">What is CORN PROTOCOL?</h2>
             <div className="prose prose-invert max-w-none">
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                CORN Vault is a comprehensive DeFi platform on PulseChain offering multiple staking pools. 
+                CORN PROTOCOL is a comprehensive DeFi platform on PulseChain offering multiple staking pools. 
                 Choose from 6 different staking pairs including CORN→veCORN, CORN→WPLS, CORN→USDC, veCORN→WPLS, 
                 USDC→CORN, and WPLS→CORN to maximize your rewards.
               </p>

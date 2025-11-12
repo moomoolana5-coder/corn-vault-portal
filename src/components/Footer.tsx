@@ -7,7 +7,7 @@ export function Footer() {
     <footer className="border-t border-border/40 mt-20 bg-card/30 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-6">
         <p className="text-xs text-center text-muted-foreground">
-          © {currentYear} CORN VAULT. All rights reserved
+          © {currentYear} CORN PROTOCOL. All rights reserved
         </p>
       </div>
     </footer>
