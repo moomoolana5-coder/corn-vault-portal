@@ -118,6 +118,10 @@ export default function Staking() {
                     <span>APR/TVL calculations use virtual pricing for display purposes</span>
                   </li>
                   <li className="flex items-start gap-2">
+                    <span className="text-yellow-500 font-bold mt-0.5 flex-shrink-0">⚠</span>
+                    <span><strong className="text-yellow-600 dark:text-yellow-400">Pools marked "Not Active"</strong> need rewards configuration by contract admin before earning begins</span>
+                  </li>
+                  <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
                     <span>Stake and unstake anytime; pools may have different reward schedules</span>
                   </li>

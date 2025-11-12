@@ -99,19 +99,6 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const pendingFormatted = formatUnits(userInfo.pending, rewardTokenMeta.decimals || 18);
   const rpsFormatted = formatUnits(pool.rewardsPerSecond, rewardTokenMeta.decimals || 18);
 
-  // Debug logging
-  console.log(`Pool ${pid} Debug:`, {
-    stakeToken: pool.stakeToken,
-    rewardToken: pool.rewardToken,
-    totalStaked: pool.totalStaked.toString(),
-    rewardsPerSecond: pool.rewardsPerSecond.toString(),
-    stakeTokenPrice,
-    rewardTokenPrice,
-    stakeDecimals: stakeTokenMeta.decimals,
-    rewardDecimals: rewardTokenMeta.decimals,
-    rpsFormatted,
-  });
-
   const virtualAPR = showVirtualAPR && stakeTokenMeta.decimals && rewardTokenMeta.decimals
     ? calculateVirtualAPR(
         pool.rewardsPerSecond,
@@ -126,8 +113,6 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const virtualTVL = stakeTokenMeta.decimals
     ? calculateVirtualTVL(pool.totalStaked, stakeTokenPrice, stakeTokenMeta.decimals)
     : 0;
-
-  console.log(`Pool ${pid} Calculated:`, { virtualAPR, virtualTVL });
 
   const getTokenLogo = (symbol: string) => {
     if (symbol === 'USDC') return usdcLogo;
@@ -192,6 +177,12 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                 Paused
               </Badge>
             )}
+            {pool.rewardsPerSecond === 0n && !pool.paused && (
+              <Badge variant="outline" className="text-xs bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400">
+                <Clock className="w-3 h-3 mr-1" />
+                Not Active
+              </Badge>
+            )}
           </div>
         </div>
 
@@ -200,7 +191,13 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">APR</p>
             <p className="text-sm font-bold text-primary">
-              {virtualAPR > 0 ? `${virtualAPR.toFixed(2)}%` : '0.00%'}
+              {pool.rewardsPerSecond === 0n ? (
+                <span className="text-muted-foreground">Pending</span>
+              ) : virtualAPR > 0 ? (
+                `${virtualAPR.toFixed(2)}%`
+              ) : (
+                '0.00%'
+              )}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
@@ -210,7 +207,11 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">RPS</p>
             <p className="text-sm font-bold">
-              {parseFloat(rpsFormatted) > 0 ? parseFloat(rpsFormatted).toFixed(8) : '0.00000000'}
+              {pool.rewardsPerSecond === 0n ? (
+                <span className="text-muted-foreground">Not Set</span>
+              ) : (
+                parseFloat(rpsFormatted).toFixed(8)
+              )}
             </p>
           </div>
         </div>
