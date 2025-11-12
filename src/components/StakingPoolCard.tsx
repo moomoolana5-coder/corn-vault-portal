@@ -10,6 +10,7 @@ import { useFormattedBalance } from '@/hooks/useErc20';
 import { useDexScreenerToken } from '@/hooks/useDexScreener';
 import { formatBalance } from '@/lib/format';
 import usdcLogo from '@/assets/usdc-logo.png';
+import cornLogo from '@/assets/corn-logo-new.png';
 
 interface StakingPoolCardProps {
   stakeTokenAddress: `0x${string}`;
@@ -44,6 +45,7 @@ export function StakingPoolCard({
   // Custom logo mapping
   const getTokenLogo = (tokenData: any, tokenSymbol: string) => {
     if (tokenSymbol === 'USDC') return usdcLogo;
+    if (tokenSymbol === '🌽') return cornLogo;
     return tokenData?.logo;
   };
 

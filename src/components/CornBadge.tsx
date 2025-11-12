@@ -1,4 +1,4 @@
-import cornLogo from '@/assets/corn-logo.png';
+import cornLogo from '@/assets/corn-logo-new.png';
 import { Link } from 'react-router-dom';
 
 export function CornBadge() {
