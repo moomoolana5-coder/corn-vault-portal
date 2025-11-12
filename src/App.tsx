@@ -8,7 +8,6 @@ import { createWeb3Modal } from '@web3modal/wagmi/react';
 import { config } from './lib/wagmi';
 import Home from "./pages/Home";
 import Vault from "./pages/Vault";
-import Access from "./pages/Access";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,7 +36,6 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/vault" element={<Vault />} />
-            <Route path="/access" element={<Access />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

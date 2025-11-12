@@ -29,13 +29,6 @@ export function Navbar() {
             >
               Vault
             </NavLink>
-            <NavLink
-              to="/access"
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              activeClassName="text-primary"
-            >
-              Access
-            </NavLink>
             <div className="ml-4">
               <w3m-button />
             </div>
@@ -69,14 +62,6 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
               >
                 Vault
-              </NavLink>
-              <NavLink
-                to="/access"
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-                activeClassName="text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Access
               </NavLink>
               <div className="pt-2">
                 <w3m-button />
