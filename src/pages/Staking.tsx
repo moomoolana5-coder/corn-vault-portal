@@ -24,23 +24,27 @@ export default function Staking() {
   const usdcMeta = useTokenMeta(USDC_ADDRESS);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center bg-gradient-corn bg-clip-text text-transparent">
-            Staking Pools
-          </h1>
-          <p className="text-center text-muted-foreground mb-12">
-            Stake tokens to earn rewards across multiple pools
-          </p>
+      <div className="container mx-auto px-4 py-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-12">
+            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-corn bg-clip-text text-transparent">
+              Staking Pools
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Stake your tokens to earn rewards across multiple pools
+            </p>
+          </div>
 
           {!isConnected && (
-            <Card className="p-8 mb-8 border-border/50 bg-card/50 backdrop-blur-sm text-center">
-              <AlertCircle className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2 text-foreground">Connect Your Wallet</h3>
-              <p className="text-muted-foreground mb-4">
-                Please connect your wallet to access staking features.
+            <Card className="p-12 border-border/40 bg-gradient-card backdrop-blur-sm text-center max-w-md mx-auto shadow-xl">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
+                <AlertCircle className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-2xl font-bold mb-3 text-foreground">Connect Your Wallet</h3>
+              <p className="text-muted-foreground mb-8 text-base">
+                Please connect your wallet to access staking features
               </p>
               <w3m-button />
             </Card>
@@ -49,7 +53,7 @@ export default function Staking() {
           {isConnected && (
             <>
               {/* Staking Pools Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
                 {stakingPools.map((pool, index) => {
                   const getTokenDecimals = (address: `0x${string}`) => {
                     if (address === CORN_ADDRESS) return cornMeta.decimals;
@@ -75,18 +79,39 @@ export default function Staking() {
               </div>
 
               {/* Info Card */}
-              <Card className="p-6 border-accent/20 bg-accent/5 backdrop-blur-sm">
-                <h4 className="font-bold mb-3 text-foreground flex items-center gap-2">
-                  <AlertCircle className="w-5 h-5 text-accent" />
-                  Staking Information
-                </h4>
-                <ul className="space-y-2 text-sm text-muted-foreground">
-                  <li>• Choose from multiple staking pools with different reward tokens</li>
-                  <li>• Earn rewards from various token pairs</li>
-                  <li>• Stake and unstake anytime with no lock periods</li>
-                  <li>• Claim your rewards whenever you want</li>
-                  <li>• All pools are non-custodial and secure</li>
-                </ul>
+              <Card className="p-8 border-accent/20 bg-gradient-card backdrop-blur-sm shadow-lg">
+                <div className="flex items-start gap-4">
+                  <div className="flex-shrink-0 w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-accent" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-xl font-bold mb-4 text-foreground">
+                      Staking Information
+                    </h4>
+                    <ul className="space-y-3 text-sm text-muted-foreground">
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span>Choose from multiple staking pools with different reward tokens</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span>Earn rewards from various token pairs</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span>Stake and unstake anytime with no lock periods</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span>Claim your rewards whenever you want</span>
+                      </li>
+                      <li className="flex items-start gap-2">
+                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span>All pools are non-custodial and secure</span>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </Card>
             </>
           )}

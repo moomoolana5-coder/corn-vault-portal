@@ -46,136 +46,148 @@ export function StakingPoolCard({
   });
 
   return (
-    <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
-      {/* Pool Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center -space-x-2">
-            {stakeLoading ? (
-              <Skeleton className="w-10 h-10 rounded-full" />
-            ) : stakeTokenData?.logo ? (
-              <img 
-                src={stakeTokenData.logo} 
-                alt={stakeTokenSymbol} 
-                className="w-10 h-10 rounded-full border-2 border-background object-cover"
-                onError={(e) => {
-                  console.error(`Failed to load image for ${stakeTokenSymbol}:`, stakeTokenData.logo);
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold border-2 border-background ${stakeTokenData?.logo ? 'hidden' : ''}`}>
-              {stakeTokenSymbol.slice(0, 2)}
+    <Card className="group relative overflow-hidden border-border/40 bg-gradient-card backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      
+      <div className="relative p-6">
+        {/* Pool Header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-4">
+            <div className="flex items-center -space-x-3">
+              {stakeLoading ? (
+                <Skeleton className="w-12 h-12 rounded-full" />
+              ) : stakeTokenData?.logo ? (
+                <img 
+                  src={stakeTokenData.logo} 
+                  alt={stakeTokenSymbol} 
+                  className="w-12 h-12 rounded-full border-2 border-background object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
+                  onError={(e) => {
+                    console.error(`Failed to load image for ${stakeTokenSymbol}:`, stakeTokenData.logo);
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${stakeTokenData?.logo ? 'hidden' : ''}`}>
+                {stakeTokenSymbol.slice(0, 2)}
+              </div>
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 z-10">
+                <ArrowRight className="w-4 h-4 text-muted-foreground" />
+              </div>
+              {earnLoading ? (
+                <Skeleton className="w-12 h-12 rounded-full" />
+              ) : earnTokenData?.logo ? (
+                <img 
+                  src={earnTokenData.logo} 
+                  alt={earnTokenSymbol} 
+                  className="w-12 h-12 rounded-full border-2 border-background object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
+                  onError={(e) => {
+                    console.error(`Failed to load image for ${earnTokenSymbol}:`, earnTokenData.logo);
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                  }}
+                />
+              ) : null}
+              <div className={`w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${earnTokenData?.logo ? 'hidden' : ''}`}>
+                {earnTokenSymbol.slice(0, 2)}
+              </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-muted-foreground z-10" />
-            {earnLoading ? (
-              <Skeleton className="w-10 h-10 rounded-full" />
-            ) : earnTokenData?.logo ? (
-              <img 
-                src={earnTokenData.logo} 
-                alt={earnTokenSymbol} 
-                className="w-10 h-10 rounded-full border-2 border-background object-cover"
-                onError={(e) => {
-                  console.error(`Failed to load image for ${earnTokenSymbol}:`, earnTokenData.logo);
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
-                }}
-              />
-            ) : null}
-            <div className={`w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-xs font-bold border-2 border-background ${earnTokenData?.logo ? 'hidden' : ''}`}>
-              {earnTokenSymbol.slice(0, 2)}
+            <div>
+              <p className="text-base font-semibold text-foreground mb-0.5">Stake {stakeTokenSymbol}</p>
+              <p className="text-sm text-muted-foreground">Earn {earnTokenSymbol}</p>
             </div>
-          </div>
-          <div>
-            <p className="font-bold text-foreground">Stake {stakeTokenSymbol}</p>
-            <p className="text-sm text-muted-foreground">Earn {earnTokenSymbol}</p>
           </div>
         </div>
-      </div>
 
-      {/* Balance Display */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
-        <div className="p-3 rounded-lg bg-background/50">
-          <p className="text-xs text-muted-foreground mb-1">Your {stakeTokenSymbol}</p>
-          <p className="font-bold text-foreground">{formatBalance(stakeBalance.formatted)}</p>
+        {/* Balance Display */}
+        <div className="grid grid-cols-2 gap-3 mb-6">
+          <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
+            <p className="text-xs font-medium text-muted-foreground mb-1.5">Available</p>
+            <p className="text-lg font-semibold text-foreground">{formatBalance(stakeBalance.formatted)}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
+          </div>
+          <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
+            <p className="text-xs font-medium text-muted-foreground mb-1.5">Staked</p>
+            <p className="text-lg font-semibold text-foreground">0.00</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
+          </div>
         </div>
-        <div className="p-3 rounded-lg bg-background/50">
-          <p className="text-xs text-muted-foreground mb-1">Staked</p>
-          <p className="font-bold text-foreground">0.00</p>
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <Tabs defaultValue="stake" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="stake">Stake</TabsTrigger>
-          <TabsTrigger value="unstake">Unstake</TabsTrigger>
-        </TabsList>
+        {/* Tabs */}
+        <Tabs defaultValue="stake" className="w-full">
+          <TabsList className="grid w-full grid-cols-2 bg-muted/50">
+            <TabsTrigger value="stake" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Stake</TabsTrigger>
+            <TabsTrigger value="unstake" className="data-[state=active]:bg-background data-[state=active]:shadow-sm">Unstake</TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="stake" className="space-y-3 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor={`stake-${stakeTokenAddress}`} className="text-xs">Amount</Label>
-            <div className="flex gap-2">
-              <Input
-                id={`stake-${stakeTokenAddress}`}
-                type="number"
-                placeholder="0.0"
-                value={stakeAmount}
-                onChange={(e) => setStakeAmount(e.target.value)}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setStakeAmount(stakeBalance.formatted)}
-              >
-                MAX
-              </Button>
+          <TabsContent value="stake" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor={`stake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
+              <div className="flex gap-2">
+                <Input
+                  id={`stake-${stakeTokenAddress}`}
+                  type="number"
+                  placeholder="0.0"
+                  value={stakeAmount}
+                  onChange={(e) => setStakeAmount(e.target.value)}
+                  className="h-11 bg-background/60 border-border/40"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setStakeAmount(stakeBalance.formatted)}
+                  className="px-6 font-medium"
+                >
+                  MAX
+                </Button>
+              </div>
             </div>
-          </div>
-          <Button className="w-full" size="sm">
-            <Lock className="w-4 h-4 mr-2" />
-            Stake
-          </Button>
-        </TabsContent>
+            <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all">
+              <Lock className="w-4 h-4 mr-2" />
+              Stake {stakeTokenSymbol}
+            </Button>
+          </TabsContent>
 
-        <TabsContent value="unstake" className="space-y-3 mt-4">
-          <div className="space-y-2">
-            <Label htmlFor={`unstake-${stakeTokenAddress}`} className="text-xs">Amount</Label>
-            <div className="flex gap-2">
-              <Input
-                id={`unstake-${stakeTokenAddress}`}
-                type="number"
-                placeholder="0.0"
-                value={unstakeAmount}
-                onChange={(e) => setUnstakeAmount(e.target.value)}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setUnstakeAmount('0.00')}
-              >
-                MAX
-              </Button>
+          <TabsContent value="unstake" className="space-y-4 mt-4">
+            <div className="space-y-2">
+              <Label htmlFor={`unstake-${stakeTokenAddress}`} className="text-sm font-medium">Amount</Label>
+              <div className="flex gap-2">
+                <Input
+                  id={`unstake-${stakeTokenAddress}`}
+                  type="number"
+                  placeholder="0.0"
+                  value={unstakeAmount}
+                  onChange={(e) => setUnstakeAmount(e.target.value)}
+                  className="h-11 bg-background/60 border-border/40"
+                />
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setUnstakeAmount('0.00')}
+                  className="px-6 font-medium"
+                >
+                  MAX
+                </Button>
+              </div>
             </div>
-          </div>
-          <Button className="w-full" variant="secondary" size="sm">
-            <Unlock className="w-4 h-4 mr-2" />
-            Unstake
-          </Button>
-        </TabsContent>
-      </Tabs>
+            <Button className="w-full h-11 font-medium shadow-md hover:shadow-lg transition-all" variant="secondary">
+              <Unlock className="w-4 h-4 mr-2" />
+              Unstake {stakeTokenSymbol}
+            </Button>
+          </TabsContent>
+        </Tabs>
 
-      {/* Pending Rewards */}
-      <div className="mt-4 pt-4 border-t border-border/50">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground">Pending Rewards</p>
-            <p className="font-bold text-foreground">0.00 {earnTokenSymbol}</p>
+        {/* Pending Rewards */}
+        <div className="mt-6 pt-6 border-t border-border/40">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground mb-1">Pending Rewards</p>
+              <p className="text-lg font-semibold text-foreground">0.00 <span className="text-sm font-normal text-muted-foreground">{earnTokenSymbol}</span></p>
+            </div>
+            <Button size="sm" variant="outline" disabled className="font-medium">
+              Claim
+            </Button>
           </div>
-          <Button size="sm" variant="outline" disabled>
-            Claim
-          </Button>
         </div>
       </div>
     </Card>

@@ -13,6 +13,9 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -50,15 +53,25 @@ export default {
         corn: {
           gold: "hsl(var(--corn-gold))",
           "gold-light": "hsl(var(--corn-gold-light))",
+          "gold-dark": "hsl(var(--corn-gold-dark))",
           green: "hsl(var(--corn-green))",
+          "green-light": "hsl(var(--corn-green-light))",
           "green-dark": "hsl(var(--corn-green-dark))",
         },
       },
       backgroundImage: {
         "gradient-corn": "var(--gradient-corn)",
+        "gradient-card": "var(--gradient-card)",
+        "gradient-subtle": "var(--gradient-subtle)",
       },
       boxShadow: {
-        "glow-corn": "var(--glow-corn)",
+        "sm": "var(--shadow-sm)",
+        "DEFAULT": "var(--shadow)",
+        "md": "var(--shadow-md)",
+        "lg": "var(--shadow-lg)",
+        "xl": "var(--shadow-xl)",
+        "glow-gold": "var(--glow-gold)",
+        "glow-green": "var(--glow-green)",
       },
       borderRadius: {
         lg: "var(--radius)",
