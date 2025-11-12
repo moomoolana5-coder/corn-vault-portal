@@ -1,11 +1,10 @@
 import { useState } from 'react';
 import { useAccount } from 'wagmi';
-import { CornBadge } from '@/components/CornBadge';
+import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import { useFormattedBalance, useTokenMeta } from '@/hooks/useErc20';
 import { VECORN_ADDRESS } from '@/lib/chains';
 import { Shield, Crown, Star, Lock } from 'lucide-react';
@@ -61,20 +60,8 @@ export default function Access() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-12">
-          <CornBadge />
-          <nav className="flex items-center gap-4">
-            <Link to="/">
-              <Button variant="ghost">Home</Button>
-            </Link>
-            <Link to="/vault">
-              <Button variant="ghost">Vault</Button>
-            </Link>
-            <w3m-button />
-          </nav>
-        </header>
 
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center bg-gradient-corn bg-clip-text text-transparent">

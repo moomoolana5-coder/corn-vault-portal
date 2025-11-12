@@ -1,7 +1,7 @@
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { CornBadge } from '@/components/CornBadge';
+import { Navbar } from '@/components/Navbar';
 import { StatCard } from '@/components/StatCard';
 import { TaxBreakdown } from '@/components/TaxBreakdown';
 import { HolderPanel } from '@/components/HolderPanel';
@@ -34,20 +34,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Navbar />
       <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <header className="flex justify-between items-center mb-16">
-          <CornBadge />
-          <nav className="flex items-center gap-4">
-            <Link to="/vault">
-              <Button variant="ghost">Vault</Button>
-            </Link>
-            <Link to="/access">
-              <Button variant="ghost">Access</Button>
-            </Link>
-            <w3m-button />
-          </nav>
-        </header>
 
         {/* Hero Section */}
         <section className="text-center mb-20">
