@@ -9,6 +9,7 @@ import { Lock, Unlock, ArrowRight, Clock } from 'lucide-react';
 import { useFormattedBalance } from '@/hooks/useErc20';
 import { useDexScreenerToken } from '@/hooks/useDexScreener';
 import { formatBalance } from '@/lib/format';
+import usdcLogo from '@/assets/usdc-logo.png';
 
 interface StakingPoolCardProps {
   stakeTokenAddress: `0x${string}`;
@@ -40,6 +41,12 @@ export function StakingPoolCard({
   const { data: stakeTokenData, isLoading: stakeLoading } = useDexScreenerToken(stakeTokenAddress);
   const { data: earnTokenData, isLoading: earnLoading } = useDexScreenerToken(earnTokenAddress);
 
+  // Custom logo mapping
+  const getTokenLogo = (tokenData: any, tokenSymbol: string) => {
+    if (tokenSymbol === 'USDC') return usdcLogo;
+    return tokenData?.logo;
+  };
+
   console.log(`StakingPoolCard - ${stakeTokenSymbol} → ${earnTokenSymbol}:`, {
     stakeTokenData,
     earnTokenData,
@@ -63,13 +70,13 @@ export function StakingPoolCard({
             <div className="flex items-center -space-x-3">
               {stakeLoading ? (
                 <Skeleton className="w-12 h-12 rounded-full" />
-              ) : stakeTokenData?.logo ? (
+              ) : getTokenLogo(stakeTokenData, stakeTokenSymbol) ? (
                 <img 
-                  src={stakeTokenData.logo} 
+                  src={getTokenLogo(stakeTokenData, stakeTokenSymbol)} 
                   alt={stakeTokenSymbol} 
                   className="w-12 h-12 rounded-full border-2 border-background object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
                   onError={(e) => {
-                    console.error(`Failed to load image for ${stakeTokenSymbol}:`, stakeTokenData.logo);
+                    console.error(`Failed to load image for ${stakeTokenSymbol}:`, getTokenLogo(stakeTokenData, stakeTokenSymbol));
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling?.classList.remove('hidden');
                   }}
@@ -83,13 +90,13 @@ export function StakingPoolCard({
               </div>
               {earnLoading ? (
                 <Skeleton className="w-12 h-12 rounded-full" />
-              ) : earnTokenData?.logo ? (
+              ) : getTokenLogo(earnTokenData, earnTokenSymbol) ? (
                 <img 
-                  src={earnTokenData.logo} 
+                  src={getTokenLogo(earnTokenData, earnTokenSymbol)} 
                   alt={earnTokenSymbol} 
                   className="w-12 h-12 rounded-full border-2 border-background object-cover shadow-md transition-transform duration-300 group-hover:scale-110"
                   onError={(e) => {
-                    console.error(`Failed to load image for ${earnTokenSymbol}:`, earnTokenData.logo);
+                    console.error(`Failed to load image for ${earnTokenSymbol}:`, getTokenLogo(earnTokenData, earnTokenSymbol));
                     e.currentTarget.style.display = 'none';
                     e.currentTarget.nextElementSibling?.classList.remove('hidden');
                   }}
