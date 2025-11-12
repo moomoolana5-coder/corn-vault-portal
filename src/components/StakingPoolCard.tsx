@@ -46,7 +46,7 @@ export function StakingPoolCard({
   const getTokenLogo = (tokenData: any, tokenSymbol: string) => {
     if (tokenSymbol === 'USDC') return usdcLogo;
     if (tokenSymbol === '🌽') return cornLogo;
-    if (tokenSymbol === 'veCORN') return cornLogo;
+    // veCORN will use emoji fallback
     return tokenData?.logo;
   };
 
@@ -86,7 +86,7 @@ export function StakingPoolCard({
                 />
               ) : null}
               <div className={`w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${getTokenLogo(stakeTokenData, stakeTokenSymbol) ? 'hidden' : ''}`}>
-                {stakeTokenSymbol === '🌽' ? 'CORN' : stakeTokenSymbol.slice(0, 2)}
+                {stakeTokenSymbol === 'veCORN' ? '🌽' : stakeTokenSymbol === '🌽' ? 'CORN' : stakeTokenSymbol.slice(0, 2)}
               </div>
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 z-10">
                 <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -106,7 +106,7 @@ export function StakingPoolCard({
                 />
               ) : null}
               <div className={`w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${getTokenLogo(earnTokenData, earnTokenSymbol) ? 'hidden' : ''}`}>
-                {earnTokenSymbol === '🌽' ? 'CORN' : earnTokenSymbol.slice(0, 2)}
+                {earnTokenSymbol === 'veCORN' ? '🌽' : earnTokenSymbol === '🌽' ? 'CORN' : earnTokenSymbol.slice(0, 2)}
               </div>
             </div>
             <div>
