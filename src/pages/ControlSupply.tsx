@@ -79,15 +79,7 @@ export default function ControlSupply() {
           </Card>
 
           {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-            <OverviewCard
-              title="CORN in Controller"
-              value={balances.cornInController || 0n}
-              decimals={18}
-              symbol="CORN"
-              icon={<span className="text-lg">🌽</span>}
-              tooltip="Current CORN balance ready to be processed"
-            />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
             <OverviewCard
               title="LP Burned (Lifetime)"
               value={overview.lpBurned}
@@ -105,85 +97,22 @@ export default function ControlSupply() {
               tooltip="Controller buys CORN and burns it, reducing supply"
             />
             <OverviewCard
-              title="Routed → Treasury"
-              value={overview.routedTreasury}
-              decimals={18}
-              symbol="CORN"
-              icon={<Vault className="w-4 h-4 text-blue-500" />}
-            />
-            <OverviewCard
               title="Routed → Staking"
               value={overview.routedStaking}
               decimals={18}
               symbol="CORN"
               icon={<Coins className="w-4 h-4 text-green-500" />}
             />
-          </div>
-
-          {/* Last Processed & Stats */}
-          {overview.lastProcessedTime && (
-            <Card className="mb-6 bg-gradient-to-br from-card to-card/50 border-border/40">
-              <CardHeader>
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Clock className="w-4 h-4" />
-                  Last Processed
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="flex items-center justify-between">
-                <div>
-                  <div className="text-lg font-semibold">
-                    {new Date(overview.lastProcessedTime * 1000).toLocaleString()}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    Total Transactions: {overview.totalTxCount}
-                  </div>
-                </div>
-                {overview.lastProcessedHash && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    asChild
-                  >
-                    <a
-                      href={`https://scan.pulsechain.com/tx/${overview.lastProcessedHash}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
-                  </Button>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Balances & Distribution */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            <BalancesBox
-              cornInController={balances.cornInController}
-              wplsInController={balances.wplsInController}
-              cornInTreasury={balances.cornInTreasury}
-              cornInStaking={balances.cornInStaking}
-              onRefresh={balances.refetchAll}
+            <OverviewCard
+              title="Buyback"
+              value={overview.cornBurned}
+              decimals={18}
+              symbol="CORN"
+              icon={<TrendingDown className="w-4 h-4 text-purple-500" />}
+              tooltip="CORN bought back and burned"
             />
-            <DistributionPanel />
           </div>
 
-          {/* Action Bar */}
-          <Card className="mb-6 bg-gradient-to-br from-card to-card/50 border-border/40">
-            <CardHeader>
-              <CardTitle>Process Distribution</CardTitle>
-              <CardDescription>
-                Execute the distribution mechanism to process accumulated CORN
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ProcessAllButton
-                cornBalance={balances.cornInController}
-              />
-            </CardContent>
-          </Card>
 
           {/* Activity Feed */}
           <Card className="bg-gradient-to-br from-card to-card/50 border-border/40">
