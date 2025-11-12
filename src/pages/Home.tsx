@@ -44,14 +44,19 @@ export default function Home() {
             CORN VAULT
           </h1>
           <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Stake veCORN to unlock premium access, earn vault rewards, 
-            and help shape the future of the ecosystem.
+            Multi-pool staking platform on PulseChain. Stake CORN, veCORN, WPLS, and USDC 
+            to earn rewards across 6 different pools with transparent tokenomics.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/vault">
+            <Link to="/staking">
               <Button size="lg" className="text-base px-8 shadow-glow-corn">
-                Stake veCORN
+                Explore Staking Pools
                 <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+            </Link>
+            <Link to="/vault">
+              <Button size="lg" variant="outline" className="text-base px-8">
+                View Dashboard
               </Button>
             </Link>
           </div>
@@ -112,17 +117,22 @@ export default function Home() {
             <h2 className="text-2xl font-bold mb-6 text-center text-foreground">What is CORN Vault?</h2>
             <div className="prose prose-invert max-w-none">
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                CORN Vault is the utility hub of the CORN ecosystem. By staking veCORN, you unlock premium access, 
-                earn a share of vault rewards, and help shape the future through tiered access levels.
+                CORN Vault is a comprehensive DeFi platform on PulseChain offering multiple staking pools. 
+                Choose from 6 different staking pairs including CORN→veCORN, CORN→WPLS, CORN→USDC, veCORN→WPLS, 
+                USDC→CORN, and WPLS→CORN to maximize your rewards.
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed mb-4">
-                The 5% tax mechanism on transactions (buy/sell) is allocated as follows: 2% Add LP (burned), 
-                1% Buyback & Burn, 1% Treasury, and 1% Staking Pool. Distribution is handled periodically by the Treasury 
-                to maintain liquidity, create deflationary pressure, fund development, and incentivize stakers.
+                The 5% tax mechanism on transactions (buy/sell) is transparently allocated: 2% Add LP (permanently burned), 
+                1% Buyback & Burn (deflationary), 1% Treasury (development & operations), and 1% Staking Pool (rewards). 
+                Distribution is handled periodically by the Treasury to maintain liquidity and incentivize long-term holders.
+              </p>
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
+                Track real-time statistics including total supply, on-chain activity, holder count, and LP burn transactions. 
+                All data is fetched directly from the blockchain ensuring transparency and accuracy.
               </p>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                CORN is not just a token—it's an access key and loyalty layer for users contributing 
-                to ecosystem growth.
+                CORN is more than a token—it's a multi-utility ecosystem with flexible staking options, 
+                deflationary mechanics, and community-driven growth on PulseChain.
               </p>
             </div>
           </div>
