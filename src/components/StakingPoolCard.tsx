@@ -248,14 +248,29 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                     </Button>
                   </div>
                 </div>
-                <Button
-                  className="w-full"
-                  onClick={handleDeposit}
-                  disabled={!stakeAmount || depositPending || pool.paused}
-                >
-                  <Lock className="w-4 h-4 mr-2" />
-                  {depositPending ? 'Staking...' : `Stake ${stakeSymbol}`}
-                </Button>
+                {/* Check if approval is needed */}
+                {allowance !== undefined && 
+                 stakeAmount && 
+                 stakeTokenMeta.decimals &&
+                 BigInt(Math.floor(parseFloat(stakeAmount) * Math.pow(10, stakeTokenMeta.decimals))) > allowance ? (
+                  <Button
+                    className="w-full"
+                    onClick={handleApprove}
+                    disabled={!stakeAmount || approvePending || pool.paused}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    {approvePending ? 'Approving...' : `Approve ${stakeSymbol}`}
+                  </Button>
+                ) : (
+                  <Button
+                    className="w-full"
+                    onClick={handleDeposit}
+                    disabled={!stakeAmount || depositPending || pool.paused}
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    {depositPending ? 'Staking...' : `Stake ${stakeSymbol}`}
+                  </Button>
+                )}
               </>
             )}
           </TabsContent>
