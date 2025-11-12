@@ -9,6 +9,7 @@ import { config } from './lib/wagmi';
 import Home from "./pages/Home";
 import Vault from "./pages/Vault";
 import Staking from "./pages/Staking";
+import ControlSupply from "./pages/ControlSupply";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/vault" element={<Vault />} />
             <Route path="/staking" element={<Staking />} />
+            <Route path="/control-supply" element={<ControlSupply />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

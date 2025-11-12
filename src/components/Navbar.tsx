@@ -36,6 +36,13 @@ export function Navbar() {
             >
               Staking
             </NavLink>
+            <NavLink
+              to="/control-supply"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              Control Supply
+            </NavLink>
             <div className="ml-4">
               <w3m-button />
             </div>
@@ -77,6 +84,14 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
               >
                 Staking
+              </NavLink>
+              <NavLink
+                to="/control-supply"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                activeClassName="text-primary"
+                onClick={() => setIsOpen(false)}
+              >
+                Control Supply
               </NavLink>
               <div className="pt-2">
                 <w3m-button />
