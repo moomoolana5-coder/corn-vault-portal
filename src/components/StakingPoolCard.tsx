@@ -47,22 +47,38 @@ export function StakingPoolCard({
             {stakeLoading ? (
               <Skeleton className="w-10 h-10 rounded-full" />
             ) : stakeTokenData?.logo ? (
-              <img src={stakeTokenData.logo} alt={stakeTokenSymbol} className="w-10 h-10 rounded-full border-2 border-background" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold border-2 border-background">
-                {stakeTokenSymbol.slice(0, 2)}
-              </div>
-            )}
+              <img 
+                src={stakeTokenData.logo} 
+                alt={stakeTokenSymbol} 
+                className="w-10 h-10 rounded-full border-2 border-background object-cover"
+                onError={(e) => {
+                  console.error(`Failed to load image for ${stakeTokenSymbol}:`, stakeTokenData.logo);
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold border-2 border-background ${stakeTokenData?.logo ? 'hidden' : ''}`}>
+              {stakeTokenSymbol.slice(0, 2)}
+            </div>
             <ArrowRight className="w-5 h-5 text-muted-foreground z-10" />
             {earnLoading ? (
               <Skeleton className="w-10 h-10 rounded-full" />
             ) : earnTokenData?.logo ? (
-              <img src={earnTokenData.logo} alt={earnTokenSymbol} className="w-10 h-10 rounded-full border-2 border-background" />
-            ) : (
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-xs font-bold border-2 border-background">
-                {earnTokenSymbol.slice(0, 2)}
-              </div>
-            )}
+              <img 
+                src={earnTokenData.logo} 
+                alt={earnTokenSymbol} 
+                className="w-10 h-10 rounded-full border-2 border-background object-cover"
+                onError={(e) => {
+                  console.error(`Failed to load image for ${earnTokenSymbol}:`, earnTokenData.logo);
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                }}
+              />
+            ) : null}
+            <div className={`w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center text-xs font-bold border-2 border-background ${earnTokenData?.logo ? 'hidden' : ''}`}>
+              {earnTokenSymbol.slice(0, 2)}
+            </div>
           </div>
           <div>
             <p className="font-bold text-foreground">Stake {stakeTokenSymbol}</p>
