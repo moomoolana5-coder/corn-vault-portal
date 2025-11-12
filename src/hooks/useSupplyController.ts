@@ -42,6 +42,7 @@ export function useSupplyOverview() {
         const currentBlock = await publicClient.getBlockNumber();
         const fromBlock = currentBlock - 100000n; // Last ~100k blocks
 
+        // 1) Ambil event dari Controller
         const logs = await publicClient.getContractEvents({
           address: ADDR.controller as `0x${string}`,
           abi: ControllerABI as Abi,
@@ -89,6 +90,54 @@ export function useSupplyOverview() {
           } catch (e) {
             console.error('Error parsing log:', e);
           }
+        }
+
+        // 2) Fallback: deteksi burn LP via Transfer LP -> dead
+        try {
+          const resp = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${ADDR.corn}`);
+          if (resp.ok) {
+            const data = await resp.json();
+            const pairs: any[] = data?.pairs ?? [];
+
+            // Pilih pair CORN/WPLS dengan likuiditas tertinggi
+            let best: any | undefined = undefined;
+            for (const p of pairs) {
+              const involvesCorn = (p.baseToken?.address?.toLowerCase() === ADDR.corn.toLowerCase()) ||
+                                   (p.quoteToken?.address?.toLowerCase() === ADDR.corn.toLowerCase());
+              const involvesWpls = (p.baseToken?.address?.toLowerCase() === ADDR.wpls.toLowerCase()) ||
+                                   (p.quoteToken?.address?.toLowerCase() === ADDR.wpls.toLowerCase());
+              if (involvesCorn && involvesWpls) {
+                if (!best || (p.liquidity?.usd || 0) > (best.liquidity?.usd || 0)) best = p;
+              }
+            }
+
+            const pairAddress: string | undefined = best?.pairAddress;
+            if (pairAddress) {
+              const lpLogs = await publicClient.getContractEvents({
+                address: pairAddress as `0x${string}`,
+                abi: ERC20ABI as Abi,
+                eventName: 'Transfer',
+                fromBlock,
+                toBlock: currentBlock,
+              });
+
+              let transferBurned = 0n;
+              for (const l of lpLogs) {
+                const a = l.args as any;
+                const to = (a?.to as string)?.toLowerCase?.();
+                if (to === ADDR.dead.toLowerCase()) {
+                  transferBurned += (a.value as bigint) || 0n;
+                }
+              }
+
+              // Jika deteksi via transfer lebih besar, gunakan itu
+              if (transferBurned > lpBurned) {
+                lpBurned = transferBurned;
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Fallback LP burn detection failed:', e);
         }
 
         setOverview({
