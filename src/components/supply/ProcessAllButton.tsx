@@ -20,12 +20,13 @@ export function ProcessAllButton({ cornBalance, disabled }: ProcessAllButtonProp
   const isDisabled = disabled || !cornBalance || cornBalance === 0n || chain?.id !== 369;
 
   const handleProcessAll = () => {
-    if (isDisabled) return;
+    if (isDisabled || !address) return;
 
     writeContract({
       address: ADDR.controller as `0x${string}`,
       abi: ControllerABI as any,
       functionName: 'processAll',
+      args: [],
     });
   };
 
