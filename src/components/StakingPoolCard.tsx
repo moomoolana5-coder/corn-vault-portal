@@ -186,8 +186,47 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   };
 
   const handleWithdraw = async () => {
-    if (!unstakeAmount || !stakeTokenMeta.decimals) return;
-    await withdraw(pid, unstakeAmount, stakeTokenMeta.decimals);
+    if (!unstakeAmount || !stakeTokenMeta.decimals) {
+      toast({
+        title: 'Invalid Amount',
+        description: 'Please enter a valid unstake amount',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      // Validate amount
+      const amountBigInt = parseUnits(unstakeAmount, stakeTokenMeta.decimals);
+      
+      if (amountBigInt <= 0n) {
+        toast({
+          title: 'Invalid Amount',
+          description: 'Amount must be greater than 0',
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      // Check staked balance
+      if (amountBigInt > userInfo.amount) {
+        toast({
+          title: 'Insufficient Staked Balance',
+          description: `You only have ${formatBalance(stakedFormatted)} ${stakeSymbol} staked`,
+          variant: 'destructive',
+        });
+        return;
+      }
+
+      await withdraw(pid, unstakeAmount, stakeTokenMeta.decimals);
+    } catch (error) {
+      console.error('Withdraw error:', error);
+      toast({
+        title: 'Withdraw Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleHarvest = async () => {

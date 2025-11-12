@@ -49,6 +49,14 @@ export function useStakingWithdraw() {
     try {
       const amountBigInt = parseUnits(amount, decimals);
       
+      console.log('Withdraw params:', {
+        pid,
+        amount,
+        decimals,
+        amountBigInt: amountBigInt.toString(),
+        stakingContract: ADDR.staking,
+      });
+      
       writeContract({
         address: ADDR.staking as `0x${string}`,
         abi: stakingAbi,
@@ -56,11 +64,13 @@ export function useStakingWithdraw() {
         args: [BigInt(pid), amountBigInt],
       } as any);
     } catch (err) {
+      console.error('Withdraw writeContract error:', err);
       toast({
         title: 'Withdraw Failed',
-        description: err instanceof Error ? err.message : 'Unknown error',
+        description: err instanceof Error ? err.message : 'Transaction rejected',
         variant: 'destructive',
       });
+      throw err;
     }
   };
 
