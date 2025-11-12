@@ -21,6 +21,12 @@ interface DexScreenerPair {
     base: number;
     quote: number;
   };
+  info?: {
+    imageUrl?: string;
+    openGraph?: string;
+    websites?: Array<{ url: string; label: string }>;
+    socials?: Array<{ url: string; type: string }>;
+  };
 }
 
 interface DexScreenerResponse {
@@ -64,16 +70,19 @@ export function useDexScreenerToken(address: string) {
         ? bestPair.baseToken
         : bestPair.quoteToken;
       
+      // Get logo from pair info
+      const logoUrl = bestPair.info?.imageUrl || token.logoURI;
+      
       const result = {
         address: token.address,
         name: token.name,
         symbol: token.symbol,
-        logo: token.logoURI,
+        logo: logoUrl,
       };
       
       console.log(`Token data for ${address}:`, result);
-      console.log(`Logo URL for ${token.symbol}:`, token.logoURI);
-      console.log(`Has logo?`, !!token.logoURI);
+      console.log(`Logo URL for ${token.symbol}:`, logoUrl);
+      console.log(`Has logo?`, !!logoUrl);
       
       return result;
     },
