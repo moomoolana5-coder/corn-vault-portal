@@ -66,37 +66,45 @@ export default function Home() {
         <section className="mb-16">
           <h2 className="text-2xl font-bold mb-8 text-center text-foreground">Live Statistics</h2>
           <div className="max-w-6xl mx-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard
-                title="CORN Total Supply"
-                value={formattedCornSupply}
-                subtitle={cornMeta.symbol || 'CORN'}
-                icon={Coins}
-                isLoading={cornMeta.isLoading}
-              />
-              <StatCard
-                title="veCORN Total Supply"
-                value={formattedVeCornSupply}
-                subtitle={veCornMeta.symbol || 'veCORN'}
-                icon={Lock}
-                isLoading={veCornMeta.isLoading}
-              />
-              {address && (
+            <div className="flex flex-wrap justify-center gap-6 mb-8">
+              <div className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] min-w-[280px]">
                 <StatCard
-                  title="Your CORN Balance"
-                  value={formatBalance(cornBalance.formatted)}
+                  title="CORN Total Supply"
+                  value={formattedCornSupply}
                   subtitle={cornMeta.symbol || 'CORN'}
-                  isLoading={cornBalance.isLoading}
+                  icon={Coins}
+                  isLoading={cornMeta.isLoading}
                 />
+              </div>
+              <div className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] min-w-[280px]">
+                <StatCard
+                  title="veCORN Total Supply"
+                  value={formattedVeCornSupply}
+                  subtitle={veCornMeta.symbol || 'veCORN'}
+                  icon={Lock}
+                  isLoading={veCornMeta.isLoading}
+                />
+              </div>
+              {address && (
+                <div className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] min-w-[280px]">
+                  <StatCard
+                    title="Your CORN Balance"
+                    value={formatBalance(cornBalance.formatted)}
+                    subtitle={cornMeta.symbol || 'CORN'}
+                    isLoading={cornBalance.isLoading}
+                  />
+                </div>
               )}
               {Number(formattedBurned) > 0 && (
-                <StatCard
-                  title="Burned CORN"
-                  value={formattedBurned}
-                  subtitle="Permanently removed"
-                  icon={Flame}
-                  isLoading={burnedBalance.isLoading}
-                />
+                <div className="w-full sm:w-[calc(50%-12px)] lg:w-[calc(25%-18px)] min-w-[280px]">
+                  <StatCard
+                    title="Burned CORN"
+                    value={formattedBurned}
+                    subtitle="Permanently removed"
+                    icon={Flame}
+                    isLoading={burnedBalance.isLoading}
+                  />
+                </div>
               )}
             </div>
 
