@@ -99,6 +99,19 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const pendingFormatted = formatUnits(userInfo.pending, rewardTokenMeta.decimals || 18);
   const rpsFormatted = formatUnits(pool.rewardsPerSecond, rewardTokenMeta.decimals || 18);
 
+  // Debug logging
+  console.log(`Pool ${pid} Debug:`, {
+    stakeToken: pool.stakeToken,
+    rewardToken: pool.rewardToken,
+    totalStaked: pool.totalStaked.toString(),
+    rewardsPerSecond: pool.rewardsPerSecond.toString(),
+    stakeTokenPrice,
+    rewardTokenPrice,
+    stakeDecimals: stakeTokenMeta.decimals,
+    rewardDecimals: rewardTokenMeta.decimals,
+    rpsFormatted,
+  });
+
   const virtualAPR = showVirtualAPR && stakeTokenMeta.decimals && rewardTokenMeta.decimals
     ? calculateVirtualAPR(
         pool.rewardsPerSecond,
@@ -113,6 +126,8 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const virtualTVL = stakeTokenMeta.decimals
     ? calculateVirtualTVL(pool.totalStaked, stakeTokenPrice, stakeTokenMeta.decimals)
     : 0;
+
+  console.log(`Pool ${pid} Calculated:`, { virtualAPR, virtualTVL });
 
   const getTokenLogo = (symbol: string) => {
     if (symbol === 'USDC') return usdcLogo;
@@ -185,16 +200,18 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">APR</p>
             <p className="text-sm font-bold text-primary">
-              {virtualAPR > 0 ? `${virtualAPR.toFixed(2)}%` : '—'}
+              {virtualAPR > 0 ? `${virtualAPR.toFixed(2)}%` : '0.00%'}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">TVL</p>
-            <p className="text-sm font-bold">${compactNumber(virtualTVL)}</p>
+            <p className="text-sm font-bold">${virtualTVL > 0 ? compactNumber(virtualTVL) : '0.00'}</p>
           </div>
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">RPS</p>
-            <p className="text-sm font-bold">{parseFloat(rpsFormatted).toFixed(6)}</p>
+            <p className="text-sm font-bold">
+              {parseFloat(rpsFormatted) > 0 ? parseFloat(rpsFormatted).toFixed(8) : '0.00000000'}
+            </p>
           </div>
         </div>
 
