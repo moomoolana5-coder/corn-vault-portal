@@ -98,10 +98,6 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
       {/* Current Stats */}
       <div className="grid grid-cols-2 gap-4 mb-6 p-4 rounded-lg bg-background/60">
         <div>
-          <p className="text-xs text-muted-foreground mb-1">Current RPS</p>
-          <p className="text-sm font-semibold">{parseFloat(currentRps).toFixed(8)}</p>
-        </div>
-        <div>
           <p className="text-xs text-muted-foreground mb-1">Total Staked</p>
           <p className="text-sm font-semibold">
             {formatUnits(pool.totalStaked, 18)} {stakeSymbol}
@@ -114,6 +110,10 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
           </p>
         </div>
         <div>
+          <p className="text-xs text-muted-foreground mb-1">Stake Token</p>
+          <p className="text-sm font-semibold">{stakeSymbol}</p>
+        </div>
+        <div>
           <p className="text-xs text-muted-foreground mb-1">Reward Token</p>
           <p className="text-sm font-semibold">{rewardSymbol}</p>
         </div>
@@ -121,35 +121,6 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
 
       {/* Admin Controls */}
       <div className="space-y-4">
-        {/* Set RPS */}
-        <div className="space-y-2">
-          <Label htmlFor={`rps-${pid}`} className="flex items-center gap-2">
-            <Coins className="w-4 h-4" />
-            Set Rewards Per Second
-          </Label>
-          <div className="flex gap-2">
-            <Input
-              id={`rps-${pid}`}
-              type="number"
-              step="0.00000001"
-              placeholder="0.0"
-              value={rpsInput}
-              onChange={(e) => setRpsInput(e.target.value)}
-            />
-            <Button
-              onClick={handleSetRps}
-              disabled={!rpsInput || rpsLoading}
-              className="flex-shrink-0"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {rpsLoading ? 'Setting...' : 'Set'}
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Reward token: {rewardSymbol} (decimals: {rewardTokenMeta.decimals || 18})
-          </p>
-        </div>
-
         {/* Set End Time */}
         <div className="space-y-2">
           <Label htmlFor={`endtime-${pid}`} className="flex items-center gap-2">
