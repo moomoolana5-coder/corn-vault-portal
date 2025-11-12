@@ -40,7 +40,8 @@ export function useSupplyOverview() {
     const loadData = async () => {
       try {
         const currentBlock = await publicClient.getBlockNumber();
-        const fromBlock = currentBlock - 100000n; // Last ~100k blocks
+        const LOOKBACK = 5000000n; // ~5M blocks for historical burn detection
+        const fromBlock = currentBlock > LOOKBACK ? currentBlock - LOOKBACK : 0n;
 
         // 1) Ambil event dari Controller
         const logs = await publicClient.getContractEvents({
