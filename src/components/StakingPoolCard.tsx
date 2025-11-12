@@ -84,8 +84,8 @@ export function StakingPoolCard({
                   }}
                 />
               ) : null}
-              <div className={`w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${stakeTokenData?.logo ? 'hidden' : ''}`}>
-                {stakeTokenSymbol.slice(0, 2)}
+              <div className={`w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${getTokenLogo(stakeTokenData, stakeTokenSymbol) ? 'hidden' : ''}`}>
+                {stakeTokenSymbol === '🌽' ? 'CORN' : stakeTokenSymbol.slice(0, 2)}
               </div>
               <div className="flex items-center justify-center w-8 h-8 rounded-full bg-background/80 backdrop-blur-sm border border-border/50 z-10">
                 <ArrowRight className="w-4 h-4 text-muted-foreground" />
@@ -104,8 +104,8 @@ export function StakingPoolCard({
                   }}
                 />
               ) : null}
-              <div className={`w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${earnTokenData?.logo ? 'hidden' : ''}`}>
-                {earnTokenSymbol.slice(0, 2)}
+              <div className={`w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center text-sm font-bold border-2 border-background shadow-md ${getTokenLogo(earnTokenData, earnTokenSymbol) ? 'hidden' : ''}`}>
+                {earnTokenSymbol === '🌽' ? 'CORN' : earnTokenSymbol.slice(0, 2)}
               </div>
             </div>
             <div>
