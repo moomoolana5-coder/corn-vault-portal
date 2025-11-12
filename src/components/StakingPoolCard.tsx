@@ -46,6 +46,7 @@ export function StakingPoolCard({
   const getTokenLogo = (tokenData: any, tokenSymbol: string) => {
     if (tokenSymbol === 'USDC') return usdcLogo;
     if (tokenSymbol === '🌽') return cornLogo;
+    if (tokenSymbol === 'veCORN') return cornLogo;
     return tokenData?.logo;
   };
 
