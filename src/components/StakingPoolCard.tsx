@@ -169,12 +169,6 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
             </div>
           </div>
           <div className="flex flex-col gap-2 items-end">
-            {isVirtualReward && (
-              <Badge variant="secondary" className="bg-accent/10 text-accent border-accent/30">
-                <Sparkles className="w-3 h-3 mr-1" />
-                Virtual Reward
-              </Badge>
-            )}
             {pool.paused && (
               <Badge variant="destructive" className="text-xs">
                 <AlertCircle className="w-3 h-3 mr-1" />
