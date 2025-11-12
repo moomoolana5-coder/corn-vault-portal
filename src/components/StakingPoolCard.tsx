@@ -16,6 +16,7 @@ import { formatBalance, compactNumber } from '@/lib/format';
 import { toast } from '@/hooks/use-toast';
 import usdcLogo from '@/assets/usdc-logo.png';
 import cornLogo from '@/assets/corn-logo-new.png';
+import wplsLogo from '@/assets/wpls-logo.jpg';
 
 interface StakingPoolCardProps {
   pid: number;
@@ -116,6 +117,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const getTokenLogo = (symbol: string) => {
     if (symbol === 'USDC') return usdcLogo;
     if (symbol === 'CORN') return cornLogo;
+    if (symbol === 'WPLS') return wplsLogo;
     return null;
   };
 
