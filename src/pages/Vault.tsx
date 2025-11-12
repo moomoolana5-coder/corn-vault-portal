@@ -1,7 +1,6 @@
 import { useAccount } from 'wagmi';
 import { Navbar } from '@/components/Navbar';
 import { TokenPanel } from '@/components/TokenPanel';
-import { VaultPanel } from '@/components/VaultPanel';
 import { Footer } from '@/components/Footer';
 import { Card } from '@/components/ui/card';
 import { CORN_ADDRESS, VECORN_ADDRESS } from '@/lib/chains';
@@ -17,10 +16,10 @@ export default function Vault() {
 
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center bg-gradient-corn bg-clip-text text-transparent">
-            Vault Dashboard
+            Dashboard
           </h1>
           <p className="text-center text-muted-foreground mb-12">
-            Manage your CORN and veCORN holdings, stake for rewards
+            Overview of your CORN and veCORN holdings
           </p>
 
           {!isConnected && (
@@ -40,11 +39,8 @@ export default function Vault() {
             <TokenPanel address={VECORN_ADDRESS} walletAddress={address} />
           </div>
 
-          {/* Staking Interface */}
-          <VaultPanel />
-
           {/* Distribution Note */}
-          <Card className="p-6 mt-6 border-border/50 bg-secondary/30 backdrop-blur-sm">
+          <Card className="p-6 border-border/50 bg-secondary/30 backdrop-blur-sm">
             <h4 className="font-bold mb-2 text-foreground flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-accent" />
               Distribution Note

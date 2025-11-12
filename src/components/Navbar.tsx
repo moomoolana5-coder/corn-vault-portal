@@ -27,7 +27,14 @@ export function Navbar() {
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
               activeClassName="text-primary"
             >
-              Vault
+              Dashboard
+            </NavLink>
+            <NavLink
+              to="/staking"
+              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+              activeClassName="text-primary"
+            >
+              Staking
             </NavLink>
             <div className="ml-4">
               <w3m-button />
@@ -61,7 +68,15 @@ export function Navbar() {
                 activeClassName="text-primary"
                 onClick={() => setIsOpen(false)}
               >
-                Vault
+                Dashboard
+              </NavLink>
+              <NavLink
+                to="/staking"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                activeClassName="text-primary"
+                onClick={() => setIsOpen(false)}
+              >
+                Staking
               </NavLink>
               <div className="pt-2">
                 <w3m-button />
