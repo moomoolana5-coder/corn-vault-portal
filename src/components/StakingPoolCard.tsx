@@ -93,8 +93,8 @@ export function StakingPoolCard({
               </div>
             </div>
             <div>
-              <p className="text-base font-semibold text-foreground mb-0.5">Stake {stakeTokenSymbol}</p>
-              <p className="text-sm text-muted-foreground">Earn {earnTokenSymbol}</p>
+              <p className="text-sm font-semibold text-foreground mb-0.5">Stake {stakeTokenSymbol}</p>
+              <p className="text-xs text-muted-foreground">Earn {earnTokenSymbol}</p>
             </div>
           </div>
         </div>
@@ -103,12 +103,12 @@ export function StakingPoolCard({
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
             <p className="text-xs font-medium text-muted-foreground mb-1.5">Available</p>
-            <p className="text-lg font-semibold text-foreground">{formatBalance(stakeBalance.formatted)}</p>
+            <p className="text-base font-semibold text-foreground">{formatBalance(stakeBalance.formatted)}</p>
             <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
           </div>
           <div className="p-4 rounded-lg bg-background/60 border border-border/40 backdrop-blur-sm">
             <p className="text-xs font-medium text-muted-foreground mb-1.5">Staked</p>
-            <p className="text-lg font-semibold text-foreground">0.00</p>
+            <p className="text-base font-semibold text-foreground">0.00</p>
             <p className="text-xs text-muted-foreground mt-0.5">{stakeTokenSymbol}</p>
           </div>
         </div>
@@ -182,9 +182,9 @@ export function StakingPoolCard({
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-medium text-muted-foreground mb-1">Pending Rewards</p>
-              <p className="text-lg font-semibold text-foreground">0.00 <span className="text-sm font-normal text-muted-foreground">{earnTokenSymbol}</span></p>
+              <p className="text-base font-semibold text-foreground">0.00 <span className="text-xs font-normal text-muted-foreground">{earnTokenSymbol}</span></p>
             </div>
-            <Button size="sm" variant="outline" disabled className="font-medium">
+            <Button size="sm" variant="outline" disabled className="font-medium text-sm">
               Claim
             </Button>
           </div>

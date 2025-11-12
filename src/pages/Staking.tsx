@@ -29,10 +29,10 @@ export default function Staking() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12">
-            <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-corn bg-clip-text text-transparent">
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-corn bg-clip-text text-transparent">
               Staking Pools
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-base text-muted-foreground max-w-2xl mx-auto">
               Stake your tokens to earn rewards across multiple pools
             </p>
           </div>
@@ -42,8 +42,8 @@ export default function Staking() {
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
                 <AlertCircle className="w-8 h-8 text-primary" />
               </div>
-              <h3 className="text-2xl font-bold mb-3 text-foreground">Connect Your Wallet</h3>
-              <p className="text-muted-foreground mb-8 text-base">
+              <h3 className="text-xl font-bold mb-3 text-foreground">Connect Your Wallet</h3>
+              <p className="text-sm text-muted-foreground mb-8">
                 Please connect your wallet to access staking features
               </p>
               <w3m-button />
@@ -85,7 +85,7 @@ export default function Staking() {
                     <AlertCircle className="w-6 h-6 text-accent" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-xl font-bold mb-4 text-foreground">
+                    <h4 className="text-lg font-bold mb-4 text-foreground">
                       Staking Information
                     </h4>
                     <ul className="space-y-3 text-sm text-muted-foreground">
