@@ -5,7 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StakingPoolCard } from '@/components/StakingPoolCard';
-import { useAllPools, useUserPoolInfo } from '@/hooks/useStakingPools';
+import { useAllPools } from '@/hooks/useStakingPools';
 import { useStakingClaimAll } from '@/hooks/useStakingActions';
 import { AlertCircle, Coins } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -25,11 +25,6 @@ export default function Staking() {
     refetch();
   };
 
-  // Calculate total pending rewards across all pools
-  const totalPendingRewards = pools.reduce((acc, pool, pid) => {
-    const { userInfo } = useUserPoolInfo(pid, address);
-    return acc + Number(userInfo.pending);
-  }, 0);
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
