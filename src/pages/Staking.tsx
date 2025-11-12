@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StakingPoolCard } from '@/components/StakingPoolCard';
+import { PriceIndicator } from '@/components/PriceIndicator';
 import { useAllPools } from '@/hooks/useStakingPools';
 import { useStakingClaimAll } from '@/hooks/useStakingActions';
 import { AlertCircle, Coins } from 'lucide-react';
@@ -12,6 +13,7 @@ import { toast } from '@/hooks/use-toast';
 import { formatUnits } from 'viem';
 import { useTokenMeta } from '@/hooks/useErc20';
 import { formatBalance, compactNumber } from '@/lib/format';
+import { ADDR } from '@/config/addresses';
 
 export default function Staking() {
   const { address, isConnected } = useAccount();
@@ -38,6 +40,7 @@ export default function Staking() {
                 <Coins className="w-3 h-3 mr-1" />
                 PulseChain • Mainnet (369)
               </Badge>
+              <PriceIndicator tokenAddress={ADDR.wpls} />
             </div>
             <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-4 bg-gradient-corn bg-clip-text text-transparent">
               Staking Pools
@@ -110,12 +113,12 @@ export default function Staking() {
                     <span>Pools are dynamically loaded from on-chain contract data</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Virtual WPLS/USDC rewards are UI labels; actual rewards follow contract config</span>
+                    <span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>
+                    <span><strong className="text-green-600 dark:text-green-400">Live Price</strong>: Real-time token prices from DexScreener API (fallback to virtual prices if unavailable)</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>APR/TVL calculations use virtual pricing for display purposes</span>
+                    <span>APR/TVL calculations use live market prices for accurate metrics</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-yellow-500 font-bold mt-0.5 flex-shrink-0">⚠</span>
