@@ -49,7 +49,7 @@ export function useSupplyOverview() {
           toBlock: currentBlock,
         });
 
-        let lpMinted = 0n,
+        let lpBurned = 0n,
           cornBurned = 0n,
           toTreasury = 0n,
           toStaking = 0n,
@@ -60,29 +60,24 @@ export function useSupplyOverview() {
         for (const log of logs) {
           try {
             txCount++;
+            const args = log.args as any;
+            
             switch (log.eventName) {
-              case 'LiquidityAdded':
               case 'LPBurnExecuted':
-                lpMinted += ((log.args as any).cornAmount || (log.args as any).cornUsed || 0n) as bigint;
-                break;
-              case 'BuybackBurn':
-                cornBurned += (log.args as any).burnedAmount as bigint;
+                // LP burn menggunakan CORN dan WPLS, kita track CORN yang digunakan
+                lpBurned += (args.cornUsed || 0n) as bigint;
                 break;
               case 'BuybackBurnExecuted':
-                cornBurned += (log.args as any).cornBurned as bigint;
-                break;
-              case 'SentToTreasury':
-                toTreasury += (log.args as any).amount as bigint;
-                break;
-              case 'SentToStaking':
-                toStaking += (log.args as any).amount as bigint;
+                // Buyback burn untuk mengurangi supply CORN
+                cornBurned += (args.cornBurned || 0n) as bigint;
                 break;
               case 'Routed':
-                const routedTo = ((log.args as any).to as string).toLowerCase();
-                if (routedTo === ADDR.treasury.toLowerCase()) {
-                  toTreasury += (log.args as any).amount as bigint;
-                } else if (routedTo === ADDR.staking.toLowerCase()) {
-                  toStaking += (log.args as any).amount as bigint;
+                const routedTo = (args.to as string).toLowerCase();
+                const amount = args.amount as bigint;
+                if (routedTo === ADDR.staking.toLowerCase()) {
+                  toStaking += amount;
+                } else if (routedTo === ADDR.treasury.toLowerCase()) {
+                  toTreasury += amount;
                 }
                 break;
               case 'ProcessAll':
@@ -92,12 +87,12 @@ export function useSupplyOverview() {
                 break;
             }
           } catch (e) {
-            // Skip malformed logs
+            console.error('Error parsing log:', e);
           }
         }
 
         setOverview({
-          lpBurned: lpMinted,
+          lpBurned,
           cornBurned,
           routedTreasury: toTreasury,
           routedStaking: toStaking,
