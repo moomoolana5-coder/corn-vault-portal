@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { StatCard } from '@/components/StatCard';
 import { TaxBreakdown } from '@/components/TaxBreakdown';
 import { HolderPanel } from '@/components/HolderPanel';
+import { LPBurnPanel } from '@/components/LPBurnPanel';
 import { Footer } from '@/components/Footer';
 import { useTokenMeta, useFormattedBalance, useDeadBalance } from '@/hooks/useErc20';
 import { CORN_ADDRESS, VECORN_ADDRESS } from '@/lib/chains';
@@ -96,11 +97,12 @@ export default function Home() {
           <HolderPanel tokenAddress={CORN_ADDRESS} />
         </section>
 
-        {/* Tax Breakdown */}
+        {/* Tax Breakdown & LP Burn */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-8 text-center text-foreground">Tax Mechanism</h2>
-          <div className="max-w-2xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
             <TaxBreakdown />
+            <LPBurnPanel />
           </div>
         </section>
 
