@@ -10,7 +10,7 @@ export default function Vault() {
   const { address, isConnected } = useAccount();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
 
@@ -18,16 +18,18 @@ export default function Vault() {
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-center bg-gradient-corn bg-clip-text text-transparent">
             Dashboard
           </h1>
-          <p className="text-center text-muted-foreground mb-12">
+          <p className="text-base text-center text-muted-foreground mb-12">
             Overview of your CORN and veCORN holdings
           </p>
 
           {!isConnected && (
-            <Card className="p-8 mb-8 border-border/50 bg-card/50 backdrop-blur-sm text-center">
-              <AlertCircle className="w-12 h-12 text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-bold mb-2 text-foreground">Connect Your Wallet</h3>
-              <p className="text-muted-foreground mb-4">
-                Please connect your wallet to view your balances and access staking features.
+            <Card className="p-12 border-border/40 bg-gradient-card backdrop-blur-sm text-center max-w-md mx-auto shadow-xl">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-6">
+                <AlertCircle className="w-8 h-8 text-primary" />
+              </div>
+              <h3 className="text-xl font-bold mb-3 text-foreground">Connect Your Wallet</h3>
+              <p className="text-sm text-muted-foreground mb-8">
+                Please connect your wallet to view your balances and access staking features
               </p>
               <w3m-button />
             </Card>
@@ -40,8 +42,8 @@ export default function Vault() {
           </div>
 
           {/* Distribution Note */}
-          <Card className="p-6 border-border/50 bg-secondary/30 backdrop-blur-sm">
-            <h4 className="font-bold mb-2 text-foreground flex items-center gap-2">
+          <Card className="p-6 border-accent/20 bg-gradient-card backdrop-blur-sm shadow-lg">
+            <h4 className="text-base font-bold mb-2 text-foreground flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-accent" />
               Distribution Note
             </h4>

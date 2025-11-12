@@ -20,43 +20,47 @@ export function HolderPanel({ tokenAddress }: HolderPanelProps) {
   }
 
   return (
-    <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
-      <h3 className="text-lg font-bold mb-4 text-foreground flex items-center gap-2">
-        <Activity className="w-5 h-5 text-primary" />
-        On-Chain Activity
-      </h3>
+    <Card className="group relative overflow-hidden border-border/40 bg-gradient-card backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      
+      <div className="relative p-6">
+        <h3 className="text-base font-bold mb-4 text-foreground flex items-center gap-2">
+          <Activity className="w-5 h-5 text-primary" />
+          On-Chain Activity
+        </h3>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="p-4 rounded-xl bg-secondary/50">
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="w-4 h-4 text-accent" />
-            <span className="text-xs text-muted-foreground">Approx. Holders</span>
+        <div className="grid grid-cols-2 gap-4">
+          <div className="p-4 rounded-xl bg-background/60 border border-border/40">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="w-4 h-4 text-accent" />
+              <span className="text-xs text-muted-foreground">Approx. Holders</span>
+            </div>
+            {isLoading ? (
+              <Skeleton className="h-7 w-20" />
+            ) : (
+              <p className="text-2xl font-bold text-foreground">{compactNumber(holdersApprox)}</p>
+            )}
           </div>
-          {isLoading ? (
-            <Skeleton className="h-7 w-20" />
-          ) : (
-            <p className="text-2xl font-bold text-foreground">{compactNumber(holdersApprox)}</p>
-          )}
+
+          <div className="p-4 rounded-xl bg-background/60 border border-border/40">
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className="w-4 h-4 text-primary" />
+              <span className="text-xs text-muted-foreground">24h Transfers</span>
+            </div>
+            {isLoading ? (
+              <Skeleton className="h-7 w-20" />
+            ) : (
+              <p className="text-2xl font-bold text-foreground">{compactNumber(transfers24h)}</p>
+            )}
+          </div>
         </div>
 
-        <div className="p-4 rounded-xl bg-secondary/50">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            <span className="text-xs text-muted-foreground">24h Transfers</span>
-          </div>
-          {isLoading ? (
-            <Skeleton className="h-7 w-20" />
-          ) : (
-            <p className="text-2xl font-bold text-foreground">{compactNumber(transfers24h)}</p>
-          )}
-        </div>
+        {isLoading && (
+          <p className="text-xs text-muted-foreground mt-3 text-center">
+            Scanning blockchain...
+          </p>
+        )}
       </div>
-
-      {isLoading && (
-        <p className="text-xs text-muted-foreground mt-3 text-center">
-          Scanning blockchain...
-        </p>
-      )}
     </Card>
   );
 }

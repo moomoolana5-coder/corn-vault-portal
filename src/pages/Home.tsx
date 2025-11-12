@@ -34,22 +34,22 @@ export default function Home() {
     : '0';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
       <div className="container mx-auto px-4 py-8">
 
         {/* Hero Section */}
         <section className="text-center mb-20">
-          <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-gradient-corn bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-corn bg-clip-text text-transparent">
             CORN VAULT
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
+          <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-3xl mx-auto">
             Stake veCORN to unlock premium access, earn vault rewards, 
             and help shape the future of the ecosystem.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/vault">
-              <Button size="lg" className="text-lg px-8 shadow-glow-corn">
+              <Button size="lg" className="text-base px-8 shadow-glow-corn">
                 Stake veCORN
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Button>
@@ -59,7 +59,7 @@ export default function Home() {
 
         {/* Stats Grid */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center text-foreground">Live Statistics</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center text-foreground">Live Statistics</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <StatCard
               title="CORN Total Supply"
@@ -99,7 +99,7 @@ export default function Home() {
 
         {/* Tax Breakdown & LP Burn */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 text-center text-foreground">Tax Mechanism</h2>
+          <h2 className="text-2xl font-bold mb-8 text-center text-foreground">Tax Mechanism</h2>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
             <TaxBreakdown />
             <LPBurnPanel />
@@ -109,18 +109,18 @@ export default function Home() {
         {/* About Section */}
         <section className="mb-16">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-3xl font-bold mb-6 text-center text-foreground">What is CORN Vault?</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center text-foreground">What is CORN Vault?</h2>
             <div className="prose prose-invert max-w-none">
-              <p className="text-muted-foreground leading-relaxed mb-4">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 CORN Vault is the utility hub of the CORN ecosystem. By staking veCORN, you unlock premium access, 
                 earn a share of vault rewards, and help shape the future through tiered access levels.
               </p>
-              <p className="text-muted-foreground leading-relaxed mb-4">
+              <p className="text-sm text-muted-foreground leading-relaxed mb-4">
                 The 5% tax mechanism on transactions (buy/sell) is allocated as follows: 2% Add LP (burned), 
                 1% Buyback & Burn, 1% Treasury, and 1% Staking Pool. Distribution is handled periodically by the Treasury 
                 to maintain liquidity, create deflationary pressure, fund development, and incentivize stakers.
               </p>
-              <p className="text-muted-foreground leading-relaxed">
+              <p className="text-sm text-muted-foreground leading-relaxed">
                 CORN is not just a token—it's an access key and loyalty layer for users contributing 
                 to ecosystem growth.
               </p>

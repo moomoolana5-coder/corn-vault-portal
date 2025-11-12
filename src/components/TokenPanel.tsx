@@ -40,43 +40,47 @@ export function TokenPanel({ address, walletAddress, explorerUrl = 'https://scan
     : '0';
 
   return (
-    <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm hover:border-primary/50 transition-colors">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <h3 className="text-2xl font-bold text-foreground">{symbol || 'Token'}</h3>
-          <p className="text-sm text-muted-foreground">{name || 'Loading...'}</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="icon" onClick={copyAddress}>
-            <Copy className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={openExplorer}>
-            <ExternalLink className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="flex justify-between items-center py-2 border-b border-border/50">
-          <span className="text-sm text-muted-foreground">Contract</span>
-          <span className="text-sm font-mono font-medium text-foreground">{shortenAddress(address)}</span>
-        </div>
-        
-        <div className="flex justify-between items-center py-2 border-b border-border/50">
-          <span className="text-sm text-muted-foreground">Total Supply</span>
-          <span className="text-sm font-bold text-foreground">{formattedSupply} {symbol}</span>
-        </div>
-
-        {walletAddress && (
-          <div className="flex justify-between items-center py-2 bg-secondary/30 px-3 rounded-lg">
-            <span className="text-sm text-muted-foreground">Your Balance</span>
-            {balanceLoading ? (
-              <Skeleton className="h-4 w-24" />
-            ) : (
-              <span className="text-sm font-bold text-primary">{formatBalance(formatted)} {symbol}</span>
-            )}
+    <Card className="group relative overflow-hidden border-border/40 bg-gradient-card backdrop-blur-sm transition-all duration-300 hover:border-primary/30 hover:shadow-lg">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+      
+      <div className="relative p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h3 className="text-xl font-bold text-foreground">{symbol || 'Token'}</h3>
+            <p className="text-xs text-muted-foreground">{name || 'Loading...'}</p>
           </div>
-        )}
+          <div className="flex gap-2">
+            <Button variant="ghost" size="icon" onClick={copyAddress}>
+              <Copy className="w-4 h-4" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={openExplorer}>
+              <ExternalLink className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <div className="flex justify-between items-center py-2 border-b border-border/40">
+            <span className="text-xs text-muted-foreground">Contract</span>
+            <span className="text-xs font-mono font-medium text-foreground">{shortenAddress(address)}</span>
+          </div>
+          
+          <div className="flex justify-between items-center py-2 border-b border-border/40">
+            <span className="text-xs text-muted-foreground">Total Supply</span>
+            <span className="text-sm font-bold text-foreground">{formattedSupply} {symbol}</span>
+          </div>
+
+          {walletAddress && (
+            <div className="flex justify-between items-center py-2 bg-background/60 px-3 rounded-lg">
+              <span className="text-xs text-muted-foreground">Your Balance</span>
+              {balanceLoading ? (
+                <Skeleton className="h-4 w-24" />
+              ) : (
+                <span className="text-sm font-bold text-primary">{formatBalance(formatted)} {symbol}</span>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Card>
   );
