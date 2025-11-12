@@ -4,10 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, Save, Clock, Coins } from 'lucide-react';
+import { Play, Pause, Save, Clock } from 'lucide-react';
 import { usePoolInfo } from '@/hooks/useStakingPools';
-import { useSetRewardsPerSecond, useSetEndTime, usePausePool, useUnpausePool } from '@/hooks/useStakingAdmin';
-import { useTokenMeta } from '@/hooks/useErc20';
+import { useSetEndTime, usePausePool, useUnpausePool } from '@/hooks/useStakingAdmin';
 import { formatUnits } from 'viem';
 import { toast } from '@/hooks/use-toast';
 
@@ -24,26 +23,19 @@ const TOKEN_SYMBOLS: Record<string, string> = {
 };
 
 export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
-  const [rpsInput, setRpsInput] = useState('');
   const [endTimeDate, setEndTimeDate] = useState('');
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
-  const rewardTokenMeta = useTokenMeta(pool?.rewardToken ?? '0x0');
 
-  const { setRewardsPerSecond, isPending: rpsLoading, isSuccess: rpsSuccess } = useSetRewardsPerSecond();
   const { setEndTime, isPending: endTimeLoading, isSuccess: endTimeSuccess } = useSetEndTime();
   const { pausePool, isPending: pauseLoading, isSuccess: pauseSuccess } = usePausePool();
   const { unpausePool, isPending: unpauseLoading, isSuccess: unpauseSuccess } = useUnpausePool();
 
   useEffect(() => {
-    if (rpsSuccess || endTimeSuccess || pauseSuccess || unpauseSuccess) {
+    if (endTimeSuccess || pauseSuccess || unpauseSuccess) {
       refetchPool();
       onRefresh?.();
-      
-      if (rpsSuccess) {
-        toast({ title: 'Success', description: 'Rewards per second updated successfully' });
-        setRpsInput('');
-      }
+
       if (endTimeSuccess) {
         toast({ title: 'Success', description: 'End time updated successfully' });
         setEndTimeDate('');
@@ -51,7 +43,7 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
       if (pauseSuccess) toast({ title: 'Success', description: 'Pool paused successfully' });
       if (unpauseSuccess) toast({ title: 'Success', description: 'Pool unpaused successfully' });
     }
-  }, [rpsSuccess, endTimeSuccess, pauseSuccess, unpauseSuccess]);
+  }, [endTimeSuccess, pauseSuccess, unpauseSuccess]);
 
   if (!pool || poolLoading) {
     return (
@@ -63,12 +55,9 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
 
   const stakeSymbol = TOKEN_SYMBOLS[pool.stakeToken.toLowerCase()] || pool.stakeToken.slice(0, 6);
   const rewardSymbol = TOKEN_SYMBOLS[pool.rewardToken.toLowerCase()] || pool.rewardToken.slice(0, 6);
-  const currentRps = formatUnits(pool.rewardsPerSecond, rewardTokenMeta.decimals || 18);
+  // RPS hidden in admin panel
 
-  const handleSetRps = async () => {
-    if (!rpsInput || !rewardTokenMeta.decimals) return;
-    await setRewardsPerSecond(pid, rpsInput, rewardTokenMeta.decimals);
-  };
+  // RPS hidden in admin panel
 
   const handleSetEndTime = async () => {
     if (!endTimeDate) return;

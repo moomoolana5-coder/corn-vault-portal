@@ -126,7 +126,7 @@ export function useTokenApproval(tokenAddress: `0x${string}`, userAddress: `0x${
     },
   });
 
-  const { writeContract, data: hash, isPending } = useWriteContract();
+  const { writeContractAsync, data: hash, isPending } = useWriteContract();
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
 
   const approve = async (amount: string, decimals: number) => {
@@ -136,18 +136,37 @@ export function useTokenApproval(tokenAddress: `0x${string}`, userAddress: `0x${
         ? BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff')
         : parseUnits(amount, decimals);
       
-      writeContract({
+      await writeContractAsync({
         address: tokenAddress,
         abi: erc20Abi,
         functionName: 'approve',
         args: [ADDR.staking as `0x${string}`, amountBigInt],
       } as any);
     } catch (err) {
-      toast({
-        title: 'Approval Failed',
-        description: err instanceof Error ? err.message : 'Unknown error',
-        variant: 'destructive',
-      });
+      // Some tokens require resetting allowance to 0 before setting a new non-zero value
+      try {
+        await writeContractAsync({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ADDR.staking as `0x${string}`, 0n],
+        } as any);
+        await writeContractAsync({
+          address: tokenAddress,
+          abi: erc20Abi,
+          functionName: 'approve',
+          args: [ADDR.staking as `0x${string}`, amount === 'max' 
+            ? BigInt('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') 
+            : parseUnits(amount, decimals)],
+        } as any);
+      } catch (e2) {
+        toast({
+          title: 'Approval Failed',
+          description: e2 instanceof Error ? e2.message : 'Unknown error',
+          variant: 'destructive',
+        });
+        throw e2;
+      }
     }
   };
 

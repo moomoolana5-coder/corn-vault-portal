@@ -247,32 +247,16 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">APR</p>
             <p className="text-sm font-bold text-primary">
-              {pool.rewardsPerSecond === 0n ? (
-                <span className="text-muted-foreground">Pending</span>
-              ) : virtualAPR > 0 ? (
-                `${virtualAPR.toFixed(2)}%`
-              ) : (
-                '0.00%'
-              )}
+              {virtualAPR > 0 ? `${virtualAPR.toFixed(2)}%` : '0.00%'}
             </p>
           </div>
           <div className="p-3 rounded-lg bg-background/60 border border-border/40">
             <p className="text-xs text-muted-foreground mb-1">TVL</p>
             <p className="text-sm font-bold">${virtualTVL > 0 ? compactNumber(virtualTVL) : '0.00'}</p>
-          </div>
-          <div className="p-3 rounded-lg bg-background/60 border border-border/40">
-            <p className="text-xs text-muted-foreground mb-1">RPS</p>
-            <p className="text-sm font-bold">
-              {pool.rewardsPerSecond === 0n ? (
-                <span className="text-muted-foreground">Not Set</span>
-              ) : (
-                parseFloat(rpsFormatted).toFixed(8)
-              )}
-            </p>
           </div>
         </div>
 

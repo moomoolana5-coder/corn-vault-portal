@@ -38,12 +38,13 @@ export function usePoolLength() {
   };
 }
 
-export function usePoolInfo(pid: number) {
+export function usePoolInfo(pid: number, enabled: boolean = true) {
   const { data, isLoading, error, refetch } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbi,
     functionName: 'pools',
     args: [BigInt(pid)],
+    query: { enabled },
   });
 
   if (!data) {
@@ -119,26 +120,26 @@ export function useAllPools() {
   // Hardcode max 20 pools and always call hooks unconditionally
   const MAX_POOLS = 20;
   
-  const pool0 = usePoolInfo(0);
-  const pool1 = usePoolInfo(1);
-  const pool2 = usePoolInfo(2);
-  const pool3 = usePoolInfo(3);
-  const pool4 = usePoolInfo(4);
-  const pool5 = usePoolInfo(5);
-  const pool6 = usePoolInfo(6);
-  const pool7 = usePoolInfo(7);
-  const pool8 = usePoolInfo(8);
-  const pool9 = usePoolInfo(9);
-  const pool10 = usePoolInfo(10);
-  const pool11 = usePoolInfo(11);
-  const pool12 = usePoolInfo(12);
-  const pool13 = usePoolInfo(13);
-  const pool14 = usePoolInfo(14);
-  const pool15 = usePoolInfo(15);
-  const pool16 = usePoolInfo(16);
-  const pool17 = usePoolInfo(17);
-  const pool18 = usePoolInfo(18);
-  const pool19 = usePoolInfo(19);
+  const pool0 = usePoolInfo(0, 0 < poolLength);
+  const pool1 = usePoolInfo(1, 1 < poolLength);
+  const pool2 = usePoolInfo(2, 2 < poolLength);
+  const pool3 = usePoolInfo(3, 3 < poolLength);
+  const pool4 = usePoolInfo(4, 4 < poolLength);
+  const pool5 = usePoolInfo(5, 5 < poolLength);
+  const pool6 = usePoolInfo(6, 6 < poolLength);
+  const pool7 = usePoolInfo(7, 7 < poolLength);
+  const pool8 = usePoolInfo(8, 8 < poolLength);
+  const pool9 = usePoolInfo(9, 9 < poolLength);
+  const pool10 = usePoolInfo(10, 10 < poolLength);
+  const pool11 = usePoolInfo(11, 11 < poolLength);
+  const pool12 = usePoolInfo(12, 12 < poolLength);
+  const pool13 = usePoolInfo(13, 13 < poolLength);
+  const pool14 = usePoolInfo(14, 14 < poolLength);
+  const pool15 = usePoolInfo(15, 15 < poolLength);
+  const pool16 = usePoolInfo(16, 16 < poolLength);
+  const pool17 = usePoolInfo(17, 17 < poolLength);
+  const pool18 = usePoolInfo(18, 18 < poolLength);
+  const pool19 = usePoolInfo(19, 19 < poolLength);
 
   const allPoolResults = [
     pool0, pool1, pool2, pool3, pool4, pool5, pool6, pool7, pool8, pool9,
