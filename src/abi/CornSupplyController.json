@@ -1,46 +1,45 @@
 [
-  { "type":"function","name":"CORN","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
-  { "type":"function","name":"pairToken","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
-  { "type":"function","name":"router","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
+  { "type":"function","name":"processAll","stateMutability":"nonpayable","inputs":[],"outputs":[]},
+  { "type":"function","name":"setRouter","stateMutability":"nonpayable","inputs":[{"name":"r","type":"address"}],"outputs":[]},
+  { "type":"function","name":"setTreasury","stateMutability":"nonpayable","inputs":[{"name":"t","type":"address"}],"outputs":[]},
+  { "type":"function","name":"setStaking","stateMutability":"nonpayable","inputs":[{"name":"s","type":"address"}],"outputs":[]},
+  { "type":"function","name":"sweep","stateMutability":"nonpayable","inputs":[{"name":"token","type":"address"},{"name":"to","type":"address"},{"name":"amt","type":"uint256"}],"outputs":[]},
   { "type":"function","name":"treasury","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
-  { "type":"function","name":"stakingPool","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
-  { "type":"function","name":"addLpCooldown","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
-  { "type":"function","name":"buybackCooldown","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
-  { "type":"function","name":"lastAddLpAt","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
-  { "type":"function","name":"lastBuybackAt","stateMutability":"view","inputs":[],"outputs":[{"type":"uint256"}]},
+  { "type":"function","name":"staking","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
   { "type":"function","name":"owner","stateMutability":"view","inputs":[],"outputs":[{"type":"address"}]},
-  { "type":"function","name":"withdrawCorn","stateMutability":"nonpayable","inputs":[{"name":"to","type":"address"},{"name":"amount","type":"uint256"}],"outputs":[]},
 
-  { "type":"event","name":"ExecutedDistribution","inputs":[{"name":"totalCorn","type":"uint256","indexed":false}], "anonymous":false },
-  { "type":"event","name":"LpAddedAndBurned","inputs":[
-      {"name":"cornUsed","type":"uint256","indexed":false},
-      {"name":"pairUsed","type":"uint256","indexed":false},
-      {"name":"lpMinted","type":"uint256","indexed":false}
+  { "type":"event","name":"ProcessAll","inputs":[{"name":"totalCorn","type":"uint256","indexed":false}], "anonymous":false },
+  { "type":"event","name":"LiquidityAdded","inputs":[
+      {"name":"cornAmount","type":"uint256","indexed":false},
+      {"name":"wplsAmount","type":"uint256","indexed":false}
     ], "anonymous":false
   },
-  { "type":"event","name":"BuybackAndBurned","inputs":[
+  { "type":"event","name":"LPBurnExecuted","inputs":[
+      {"name":"cornUsed","type":"uint256","indexed":false},
+      {"name":"wplsUsed","type":"uint256","indexed":false}
+    ], "anonymous":false
+  },
+  { "type":"event","name":"BuybackBurn","inputs":[
+      {"name":"burnedAmount","type":"uint256","indexed":false}
+    ], "anonymous":false
+  },
+  { "type":"event","name":"BuybackBurnExecuted","inputs":[
       {"name":"pairSpent","type":"uint256","indexed":false},
       {"name":"cornBurned","type":"uint256","indexed":false}
+    ], "anonymous":false
+  },
+  { "type":"event","name":"SentToTreasury","inputs":[
+      {"name":"amount","type":"uint256","indexed":false}
+    ], "anonymous":false
+  },
+  { "type":"event","name":"SentToStaking","inputs":[
+      {"name":"amount","type":"uint256","indexed":false}
     ], "anonymous":false
   },
   { "type":"event","name":"Routed","inputs":[
       {"name":"to","type":"address","indexed":true},
       {"name":"amount","type":"uint256","indexed":false},
       {"name":"tag","type":"bytes32","indexed":false}
-    ], "anonymous":false
-  },
-  { "type":"event","name":"SetCooldowns","inputs":[
-      {"name":"addLpSec","type":"uint256","indexed":false},
-      {"name":"buybackSec","type":"uint256","indexed":false}
-    ], "anonymous":false
-  },
-  { "type":"event","name":"SetPairToken","inputs":[{"name":"token","type":"address","indexed":false}], "anonymous":false },
-  { "type":"event","name":"SetRouter","inputs":[{"name":"router","type":"address","indexed":false}], "anonymous":false },
-  { "type":"event","name":"SetTreasury","inputs":[{"name":"treasury","type":"address","indexed":false}], "anonymous":false },
-  { "type":"event","name":"SetStakingPool","inputs":[{"name":"staking","type":"address","indexed":false}], "anonymous":false },
-  { "type":"event","name":"WithdrawCorn","inputs":[
-      {"name":"to","type":"address","indexed":true},
-      {"name":"amount","type":"uint256","indexed":false}
     ], "anonymous":false
   }
 ]

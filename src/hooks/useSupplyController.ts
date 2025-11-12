@@ -1,14 +1,18 @@
 import { useEffect, useState } from 'react';
-import { usePublicClient, useReadContract } from 'wagmi';
+import { usePublicClient, useReadContract, useAccount } from 'wagmi';
 import { decodeEventLog, type Abi } from 'viem';
 import { ADDR } from '@/config/addresses';
 import ControllerABI from '@/abi/CornSupplyController.json';
+import ERC20ABI from '@/abi/ERC20.json';
 
 export interface SupplyOverview {
   lpBurned: bigint;
   cornBurned: bigint;
   routedTreasury: bigint;
   routedStaking: bigint;
+  lastProcessedTime?: number;
+  lastProcessedHash?: string;
+  totalTxCount: number;
 }
 
 export interface SupplyEvent {
@@ -25,6 +29,7 @@ export function useSupplyOverview() {
     cornBurned: 0n,
     routedTreasury: 0n,
     routedStaking: 0n,
+    totalTxCount: 0,
   });
   const [loading, setLoading] = useState(true);
   const publicClient = usePublicClient();
@@ -47,16 +52,30 @@ export function useSupplyOverview() {
         let lpMinted = 0n,
           cornBurned = 0n,
           toTreasury = 0n,
-          toStaking = 0n;
+          toStaking = 0n,
+          txCount = 0,
+          lastProcessedTime: number | undefined,
+          lastProcessedHash: string | undefined;
 
         for (const log of logs) {
           try {
+            txCount++;
             switch (log.eventName) {
-              case 'LpAddedAndBurned':
-                lpMinted += (log.args as any).lpMinted as bigint;
+              case 'LiquidityAdded':
+              case 'LPBurnExecuted':
+                lpMinted += ((log.args as any).cornAmount || (log.args as any).cornUsed || 0n) as bigint;
                 break;
-              case 'BuybackAndBurned':
+              case 'BuybackBurn':
+                cornBurned += (log.args as any).burnedAmount as bigint;
+                break;
+              case 'BuybackBurnExecuted':
                 cornBurned += (log.args as any).cornBurned as bigint;
+                break;
+              case 'SentToTreasury':
+                toTreasury += (log.args as any).amount as bigint;
+                break;
+              case 'SentToStaking':
+                toStaking += (log.args as any).amount as bigint;
                 break;
               case 'Routed':
                 const routedTo = ((log.args as any).to as string).toLowerCase();
@@ -65,6 +84,11 @@ export function useSupplyOverview() {
                 } else if (routedTo === ADDR.staking.toLowerCase()) {
                   toStaking += (log.args as any).amount as bigint;
                 }
+                break;
+              case 'ProcessAll':
+                const block = await publicClient.getBlock({ blockNumber: log.blockNumber });
+                lastProcessedTime = Number(block.timestamp);
+                lastProcessedHash = log.transactionHash;
                 break;
             }
           } catch (e) {
@@ -77,6 +101,9 @@ export function useSupplyOverview() {
           cornBurned,
           routedTreasury: toTreasury,
           routedStaking: toStaking,
+          totalTxCount: txCount,
+          lastProcessedTime,
+          lastProcessedHash,
         });
       } catch (error) {
         console.error('Error loading supply overview:', error);
