@@ -64,18 +64,18 @@ export function useDexScreenerToken(address: string) {
         ? bestPair.baseToken
         : bestPair.quoteToken;
       
-      console.log(`Token data for ${address}:`, {
-        name: token.name,
-        symbol: token.symbol,
-        logo: token.logoURI,
-      });
-      
-      return {
+      const result = {
         address: token.address,
         name: token.name,
         symbol: token.symbol,
         logo: token.logoURI,
       };
+      
+      console.log(`Token data for ${address}:`, result);
+      console.log(`Logo URL for ${token.symbol}:`, token.logoURI);
+      console.log(`Has logo?`, !!token.logoURI);
+      
+      return result;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 2,

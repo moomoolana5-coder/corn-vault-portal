@@ -38,6 +38,13 @@ export function StakingPoolCard({
   const { data: stakeTokenData, isLoading: stakeLoading } = useDexScreenerToken(stakeTokenAddress);
   const { data: earnTokenData, isLoading: earnLoading } = useDexScreenerToken(earnTokenAddress);
 
+  console.log(`StakingPoolCard - ${stakeTokenSymbol} → ${earnTokenSymbol}:`, {
+    stakeTokenData,
+    earnTokenData,
+    stakeLoading,
+    earnLoading,
+  });
+
   return (
     <Card className="p-6 border-border/50 bg-card/50 backdrop-blur-sm">
       {/* Pool Header */}
