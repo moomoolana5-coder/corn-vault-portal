@@ -25,9 +25,6 @@ export default function Vault() {
             <Link to="/access">
               <Button variant="ghost">Access</Button>
             </Link>
-            <Link to="/docs">
-              <Button variant="ghost">Docs</Button>
-            </Link>
             <w3m-button />
           </nav>
         </header>
@@ -67,8 +64,8 @@ export default function Vault() {
               Distribution Note
             </h4>
             <p className="text-sm text-muted-foreground">
-              Tax 5% didistribusikan berkala oleh Treasury sesuai alokasi: 2% Add LP (burn), 1% Buyback & Burn, 
-              1% Treasury, dan 1% Staking Pool. Mekanisme otomatis melalui router akan diluncurkan dalam tahap berikutnya.
+              The 5% tax is distributed periodically by the Treasury according to allocation: 2% Add LP (burn), 1% Buyback & Burn, 
+              1% Treasury, and 1% Staking Pool. Automated distribution via router will be launched in the next phase.
             </p>
           </Card>
         </div>

@@ -45,9 +45,6 @@ export default function Home() {
             <Link to="/access">
               <Button variant="ghost">Access</Button>
             </Link>
-            <Link to="/docs">
-              <Button variant="ghost">Docs</Button>
-            </Link>
             <w3m-button />
           </nav>
         </header>
@@ -58,19 +55,14 @@ export default function Home() {
             CORN VAULT
           </h1>
           <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-            Stake veCORN untuk membuka akses premium, memperoleh bagian dari vault rewards, 
-            dan ikut menentukan arah ekosistem.
+            Stake veCORN to unlock premium access, earn vault rewards, 
+            and help shape the future of the ecosystem.
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link to="/vault">
               <Button size="lg" className="text-lg px-8 shadow-glow-corn">
                 Stake veCORN
                 <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </Link>
-            <Link to="/docs">
-              <Button size="lg" variant="secondary" className="text-lg px-8">
-                Lihat Dokumen
               </Button>
             </Link>
           </div>
@@ -130,17 +122,17 @@ export default function Home() {
             <h2 className="text-3xl font-bold mb-6 text-center text-foreground">What is CORN Vault?</h2>
             <div className="prose prose-invert max-w-none">
               <p className="text-muted-foreground leading-relaxed mb-4">
-                CORN Vault adalah pusat utilitas ekosistem CORN. Dengan men-stake veCORN, Anda membuka akses premium, 
-                memperoleh bagian dari alokasi vault rewards, dan ikut menentukan arah pengembangan melalui tier akses.
+                CORN Vault is the utility hub of the CORN ecosystem. By staking veCORN, you unlock premium access, 
+                earn a share of vault rewards, and help shape the future through tiered access levels.
               </p>
               <p className="text-muted-foreground leading-relaxed mb-4">
-                Mekanisme pajak 5% pada transaksi (buy/sell) dialokasikan sebagai berikut: 2% Add LP (dibakar), 
-                1% Buyback & Burn, 1% Treasury, dan 1% Staking Pool. Distribusi dilakukan berkala oleh Treasury 
-                untuk menjaga likuiditas, menciptakan tekanan deflasi, mendanai pengembangan, dan memberi insentif kepada staker.
+                The 5% tax mechanism on transactions (buy/sell) is allocated as follows: 2% Add LP (burned), 
+                1% Buyback & Burn, 1% Treasury, and 1% Staking Pool. Distribution is handled periodically by the Treasury 
+                to maintain liquidity, create deflationary pressure, fund development, and incentivize stakers.
               </p>
               <p className="text-muted-foreground leading-relaxed">
-                CORN tidak sekadar token—ini adalah access key dan loyalty layer bagi pengguna yang berkontribusi 
-                pada pertumbuhan ekosistem.
+                CORN is not just a token—it's an access key and loyalty layer for users contributing 
+                to ecosystem growth.
               </p>
             </div>
           </div>

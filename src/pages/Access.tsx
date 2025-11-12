@@ -72,9 +72,6 @@ export default function Access() {
             <Link to="/vault">
               <Button variant="ghost">Vault</Button>
             </Link>
-            <Link to="/docs">
-              <Button variant="ghost">Docs</Button>
-            </Link>
             <w3m-button />
           </nav>
         </header>
