@@ -26,13 +26,13 @@ export default function Staking() {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-6 md:py-12">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-corn bg-clip-text text-transparent">
+          <div className="text-center mb-8 md:mb-12 px-4">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 md:mb-4 bg-gradient-corn bg-clip-text text-transparent">
               Staking Pools
             </h1>
-            <p className="text-base text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto">
               Stake your tokens to earn rewards across multiple pools
             </p>
           </div>
@@ -53,7 +53,7 @@ export default function Staking() {
           {isConnected && (
             <>
               {/* Staking Pools Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-12">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
                 {stakingPools.map((pool, index) => {
                   const getTokenDecimals = (address: `0x${string}`) => {
                     if (address === CORN_ADDRESS) return cornMeta.decimals;
@@ -79,34 +79,34 @@ export default function Staking() {
               </div>
 
               {/* Info Card */}
-              <Card className="p-8 border-accent/20 bg-gradient-card backdrop-blur-sm shadow-lg">
-                <div className="flex items-start gap-4">
+              <Card className="p-6 md:p-8 border-accent/20 bg-gradient-card backdrop-blur-sm shadow-lg">
+                <div className="flex flex-col sm:flex-row items-start gap-4">
                   <div className="flex-shrink-0 w-12 h-12 rounded-full bg-accent/10 flex items-center justify-center">
                     <AlertCircle className="w-6 h-6 text-accent" />
                   </div>
                   <div className="flex-1">
-                    <h4 className="text-lg font-bold mb-4 text-foreground">
+                    <h4 className="text-base md:text-lg font-bold mb-3 md:mb-4 text-foreground">
                       Staking Information
                     </h4>
-                    <ul className="space-y-3 text-sm text-muted-foreground">
+                    <ul className="space-y-2 md:space-y-3 text-xs sm:text-sm text-muted-foreground">
                       <li className="flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
                         <span>Choose from multiple staking pools with different reward tokens</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
                         <span>Earn rewards from various token pairs</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
                         <span>Stake and unstake anytime with no lock periods</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
                         <span>Claim your rewards whenever you want</span>
                       </li>
                       <li className="flex items-start gap-2">
-                        <span className="text-accent font-bold mt-0.5">•</span>
+                        <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
                         <span>All pools are non-custodial and secure</span>
                       </li>
                     </ul>

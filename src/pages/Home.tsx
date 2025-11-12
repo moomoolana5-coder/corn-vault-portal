@@ -36,26 +36,26 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-subtle">
       <Navbar />
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 md:py-8">
 
         {/* Hero Section */}
-        <section className="text-center mb-20">
-          <h1 className="text-4xl md:text-5xl font-bold mb-6 bg-gradient-corn bg-clip-text text-transparent">
+        <section className="text-center mb-12 md:mb-20 px-4">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6 bg-gradient-corn bg-clip-text text-transparent">
             CORN VAULT
           </h1>
-          <p className="text-base md:text-lg text-muted-foreground mb-8 max-w-3xl mx-auto">
+          <p className="text-sm sm:text-base md:text-lg text-muted-foreground mb-6 md:mb-8 max-w-3xl mx-auto">
             Multi-pool staking platform on PulseChain. Stake CORN, veCORN, WPLS, and USDC 
             to earn rewards across 6 different pools with transparent tokenomics.
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link to="/staking">
-              <Button size="lg" className="text-base px-8 shadow-glow-corn">
+          <div className="flex flex-col sm:flex-row flex-wrap justify-center gap-3 md:gap-4">
+            <Link to="/staking" className="w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto text-sm md:text-base px-6 md:px-8 shadow-glow-corn">
                 Explore Staking Pools
-                <ArrowRight className="ml-2 w-5 h-5" />
+                <ArrowRight className="ml-2 w-4 h-4 md:w-5 md:h-5" />
               </Button>
             </Link>
-            <Link to="/vault">
-              <Button size="lg" variant="outline" className="text-base px-8">
+            <Link to="/vault" className="w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="w-full sm:w-auto text-sm md:text-base px-6 md:px-8">
                 View Dashboard
               </Button>
             </Link>
@@ -65,47 +65,49 @@ export default function Home() {
         {/* Stats Grid */}
         <section className="mb-16">
           <h2 className="text-2xl font-bold mb-8 text-center text-foreground">Live Statistics</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <StatCard
-              title="CORN Total Supply"
-              value={formattedCornSupply}
-              subtitle={cornMeta.symbol || 'CORN'}
-              icon={Coins}
-              isLoading={cornMeta.isLoading}
-            />
-            <StatCard
-              title="veCORN Total Supply"
-              value={formattedVeCornSupply}
-              subtitle={veCornMeta.symbol || 'veCORN'}
-              icon={Lock}
-              isLoading={veCornMeta.isLoading}
-            />
-            {address && (
+          <div className="max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               <StatCard
-                title="Your CORN Balance"
-                value={formatBalance(cornBalance.formatted)}
+                title="CORN Total Supply"
+                value={formattedCornSupply}
                 subtitle={cornMeta.symbol || 'CORN'}
-                isLoading={cornBalance.isLoading}
+                icon={Coins}
+                isLoading={cornMeta.isLoading}
               />
-            )}
-            {Number(formattedBurned) > 0 && (
               <StatCard
-                title="Burned CORN"
-                value={formattedBurned}
-                subtitle="Permanently removed"
-                icon={Flame}
-                isLoading={burnedBalance.isLoading}
+                title="veCORN Total Supply"
+                value={formattedVeCornSupply}
+                subtitle={veCornMeta.symbol || 'veCORN'}
+                icon={Lock}
+                isLoading={veCornMeta.isLoading}
               />
-            )}
-          </div>
+              {address && (
+                <StatCard
+                  title="Your CORN Balance"
+                  value={formatBalance(cornBalance.formatted)}
+                  subtitle={cornMeta.symbol || 'CORN'}
+                  isLoading={cornBalance.isLoading}
+                />
+              )}
+              {Number(formattedBurned) > 0 && (
+                <StatCard
+                  title="Burned CORN"
+                  value={formattedBurned}
+                  subtitle="Permanently removed"
+                  icon={Flame}
+                  isLoading={burnedBalance.isLoading}
+                />
+              )}
+            </div>
 
-          <HolderPanel tokenAddress={CORN_ADDRESS} />
+            <HolderPanel tokenAddress={CORN_ADDRESS} />
+          </div>
         </section>
 
         {/* Tax Breakdown & LP Burn */}
         <section className="mb-16">
           <h2 className="text-2xl font-bold mb-8 text-center text-foreground">Tax Mechanism</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 max-w-6xl mx-auto">
             <TaxBreakdown />
             <LPBurnPanel />
           </div>
