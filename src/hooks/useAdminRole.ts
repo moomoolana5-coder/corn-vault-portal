@@ -1,26 +1,12 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+const ADMIN_ADDRESS = '0x9d86ab0c305633a1e77cfeadf62d07ab70e7ccf5';
 
 export function useIsAdmin(address: string | undefined) {
-  return useQuery({
-    queryKey: ['is-admin', address],
-    queryFn: async () => {
-      if (!address) return false;
-      
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', address.toLowerCase())
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error checking admin role:', error);
-        return false;
-      }
-      
-      return !!data;
-    },
-    enabled: !!address,
-  });
+  if (!address) return { data: false, isLoading: false };
+  
+  const isAdmin = address.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
+  
+  return { 
+    data: isAdmin, 
+    isLoading: false 
+  };
 }
