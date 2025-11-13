@@ -27,9 +27,26 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
 
-  const { setEndTime, isPending: endTimeLoading, isSuccess: endTimeSuccess } = useSetEndTime();
-  const { pausePool, isPending: pauseLoading, isSuccess: pauseSuccess } = usePausePool();
-  const { unpausePool, isPending: unpauseLoading, isSuccess: unpauseSuccess } = useUnpausePool();
+  const { 
+    setEndTime, 
+    isPending: endTimeLoading, 
+    isSuccess: endTimeSuccess,
+    error: endTimeError 
+  } = useSetEndTime();
+  
+  const { 
+    pausePool, 
+    isPending: pauseLoading, 
+    isSuccess: pauseSuccess,
+    error: pauseError 
+  } = usePausePool();
+  
+  const { 
+    unpausePool, 
+    isPending: unpauseLoading, 
+    isSuccess: unpauseSuccess,
+    error: unpauseError 
+  } = useUnpausePool();
 
   useEffect(() => {
     if (endTimeSuccess || pauseSuccess || unpauseSuccess) {
@@ -44,6 +61,30 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
       if (unpauseSuccess) toast({ title: 'Success', description: 'Pool unpaused successfully' });
     }
   }, [endTimeSuccess, pauseSuccess, unpauseSuccess]);
+
+  useEffect(() => {
+    if (endTimeError) {
+      toast({ 
+        title: 'Set End Time Failed', 
+        description: endTimeError.message || 'Transaction was rejected or failed',
+        variant: 'destructive' 
+      });
+    }
+    if (pauseError) {
+      toast({ 
+        title: 'Pause Pool Failed', 
+        description: pauseError.message || 'Transaction was rejected or failed',
+        variant: 'destructive' 
+      });
+    }
+    if (unpauseError) {
+      toast({ 
+        title: 'Unpause Pool Failed', 
+        description: unpauseError.message || 'Transaction was rejected or failed',
+        variant: 'destructive' 
+      });
+    }
+  }, [endTimeError, pauseError, unpauseError]);
 
   if (!pool || poolLoading) {
     return (
