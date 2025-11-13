@@ -99,10 +99,6 @@ export default function Staking() {
                     <span><strong className="text-green-600 dark:text-green-400">Live Price</strong>: Real-time token prices from DexScreener API (fallback to virtual prices if unavailable)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>APR/TVL calculations use live market prices for accurate metrics</span>
-                  </li>
-                  <li className="flex items-start gap-2">
                     <span className="text-yellow-500 font-bold mt-0.5 flex-shrink-0">⚠</span>
                     <span><strong className="text-yellow-600 dark:text-yellow-400">Pools marked "Not Active"</strong> need rewards configuration by contract admin before earning begins</span>
                   </li>
@@ -119,6 +115,37 @@ export default function Staking() {
                     <span>All interactions are non-custodial and secured by smart contracts</span>
                   </li>
                 </ul>
+
+                <div className="mt-6 pt-6 border-t border-border/40">
+                  <h5 className="text-sm md:text-base font-semibold mb-3 text-foreground">
+                    📊 APR & TVL Calculations
+                  </h5>
+                  <div className="space-y-3 text-xs sm:text-sm text-muted-foreground">
+                    <div>
+                      <strong className="text-foreground">APR (Annual Percentage Rate):</strong>
+                      <p className="mt-1 ml-4">APR = (Yearly Rewards Value / Total Staked Value) × 100</p>
+                      <p className="mt-1 ml-4">• Yearly Rewards = Rewards Per Second × 86,400 seconds × 365 days × Reward Token Price</p>
+                      <p className="mt-1 ml-4">• Higher APR means better returns on your staked tokens</p>
+                      <p className="mt-1 ml-4">• APR fluctuates based on total staked amount and token prices</p>
+                    </div>
+                    
+                    <div>
+                      <strong className="text-foreground">TVL (Total Value Locked):</strong>
+                      <p className="mt-1 ml-4">TVL = Total Staked Tokens × Token Price (USD)</p>
+                      <p className="mt-1 ml-4">• Shows the total USD value locked in the pool</p>
+                      <p className="mt-1 ml-4">• Higher TVL indicates more user confidence and liquidity</p>
+                      <p className="mt-1 ml-4">• TVL affects APR inversely: higher TVL = lower APR</p>
+                    </div>
+
+                    <div>
+                      <strong className="text-foreground">How Staking Works:</strong>
+                      <p className="mt-1 ml-4">1. <strong>Deposit</strong>: Lock your tokens in the pool contract</p>
+                      <p className="mt-1 ml-4">2. <strong>Earn</strong>: Rewards accumulate every second based on pool's RPS (Rewards Per Second)</p>
+                      <p className="mt-1 ml-4">3. <strong>Claim</strong>: Harvest your rewards anytime without unstaking</p>
+                      <p className="mt-1 ml-4">4. <strong>Withdraw</strong>: Unstake your tokens whenever you want (automatically claims pending rewards)</p>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </Card>
