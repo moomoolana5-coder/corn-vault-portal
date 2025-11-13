@@ -2,14 +2,11 @@ import { useAccount } from 'wagmi';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StakingPoolCard } from '@/components/StakingPoolCard';
 import { PriceIndicator } from '@/components/PriceIndicator';
 import { useAllPools } from '@/hooks/useStakingPools';
-import { useStakingClaimAll } from '@/hooks/useStakingActions';
 import { AlertCircle, Coins } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
 import { formatUnits } from 'viem';
 import { useTokenMeta } from '@/hooks/useErc20';
 import { formatBalance, compactNumber } from '@/lib/format';
@@ -18,14 +15,6 @@ import { ADDR } from '@/config/addresses';
 export default function Staking() {
   const { address, isConnected } = useAccount();
   const { pools, isLoading: poolsLoading, refetch } = useAllPools();
-  const { claimAll, isPending: claimAllPending } = useStakingClaimAll();
-
-  const handleClaimAll = async () => {
-    const pids = pools.map((_, i) => i);
-    await claimAll(pids);
-    toast({ title: 'Claim All Successful', description: 'All rewards have been claimed.' });
-    refetch();
-  };
 
 
   return (
@@ -49,9 +38,9 @@ export default function Staking() {
               Stake your tokens to earn rewards across multiple pools
             </p>
             
-            {/* Stats & Claim All */}
+            {/* Stats */}
             {isConnected && pools.length > 0 && (
-              <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-6">
+              <div className="flex items-center justify-center gap-4 mb-6">
                 <div className="flex items-center gap-6 px-6 py-3 rounded-lg bg-background/60 border border-border/40">
                   <div>
                     <p className="text-xs text-muted-foreground">Active Pools</p>
@@ -63,13 +52,6 @@ export default function Staking() {
                     <p className="text-lg font-bold">{pools.length}</p>
                   </div>
                 </div>
-                <Button
-                  onClick={handleClaimAll}
-                  disabled={claimAllPending || pools.length === 0}
-                  className="shadow-md hover:shadow-lg"
-                >
-                  {claimAllPending ? 'Claiming...' : 'Claim All Rewards'}
-                </Button>
               </div>
             )}
           </div>
