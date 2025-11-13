@@ -38,6 +38,33 @@ export type Database = {
         }
         Relationships: []
       }
+      pool_pause_status: {
+        Row: {
+          id: string
+          is_paused: boolean
+          paused_at: string | null
+          paused_by: string | null
+          pool_id: number
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          is_paused?: boolean
+          paused_at?: string | null
+          paused_by?: string | null
+          pool_id: number
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          is_paused?: boolean
+          paused_at?: string | null
+          paused_by?: string | null
+          pool_id?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

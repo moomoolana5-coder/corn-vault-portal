@@ -6,9 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Play, Pause, Save, Clock } from 'lucide-react';
 import { usePoolInfo } from '@/hooks/useStakingPools';
-import { useSetEndTime, usePausePool, useUnpausePool } from '@/hooks/useStakingAdmin';
+import { useSetEndTime } from '@/hooks/useStakingAdmin';
+import { usePoolPauseStatus, useTogglePoolPause } from '@/hooks/usePoolPauseStatus';
 import { formatUnits } from 'viem';
 import { toast } from '@/hooks/use-toast';
+import { useAccount } from 'wagmi';
 
 interface AdminPoolCardProps {
   pid: number;
@@ -24,8 +26,11 @@ const TOKEN_SYMBOLS: Record<string, string> = {
 
 export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
   const [endTimeDate, setEndTimeDate] = useState('');
+  const { address } = useAccount();
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
+  const { data: pauseStatus, isLoading: pauseStatusLoading } = usePoolPauseStatus(pid);
+  const togglePause = useTogglePoolPause();
 
   const { 
     setEndTime, 
@@ -33,34 +38,15 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
     isSuccess: endTimeSuccess,
     error: endTimeError 
   } = useSetEndTime();
-  
-  const { 
-    pausePool, 
-    isPending: pauseLoading, 
-    isSuccess: pauseSuccess,
-    error: pauseError 
-  } = usePausePool();
-  
-  const { 
-    unpausePool, 
-    isPending: unpauseLoading, 
-    isSuccess: unpauseSuccess,
-    error: unpauseError 
-  } = useUnpausePool();
 
   useEffect(() => {
-    if (endTimeSuccess || pauseSuccess || unpauseSuccess) {
+    if (endTimeSuccess) {
       refetchPool();
       onRefresh?.();
-
-      if (endTimeSuccess) {
-        toast({ title: 'Success', description: 'End time updated successfully' });
-        setEndTimeDate('');
-      }
-      if (pauseSuccess) toast({ title: 'Success', description: 'Pool paused successfully' });
-      if (unpauseSuccess) toast({ title: 'Success', description: 'Pool unpaused successfully' });
+      toast({ title: 'Success', description: 'End time updated successfully' });
+      setEndTimeDate('');
     }
-  }, [endTimeSuccess, pauseSuccess, unpauseSuccess]);
+  }, [endTimeSuccess]);
 
   useEffect(() => {
     if (endTimeError) {
@@ -70,23 +56,9 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
         variant: 'destructive' 
       });
     }
-    if (pauseError) {
-      toast({ 
-        title: 'Pause Pool Failed', 
-        description: pauseError.message || 'Transaction was rejected or failed',
-        variant: 'destructive' 
-      });
-    }
-    if (unpauseError) {
-      toast({ 
-        title: 'Unpause Pool Failed', 
-        description: unpauseError.message || 'Transaction was rejected or failed',
-        variant: 'destructive' 
-      });
-    }
-  }, [endTimeError, pauseError, unpauseError]);
+  }, [endTimeError]);
 
-  if (!pool || poolLoading) {
+  if (!pool || poolLoading || pauseStatusLoading) {
     return (
       <Card className="p-6 animate-pulse">
         <div className="h-48 bg-muted/20 rounded" />
@@ -107,12 +79,17 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
   };
 
   const handleTogglePause = async () => {
-    if (pool.paused) {
-      await unpausePool(pid);
-    } else {
-      await pausePool(pid);
-    }
+    if (!address) return;
+    
+    const newPauseState = !pauseStatus?.is_paused;
+    await togglePause.mutateAsync({
+      poolId: pid,
+      isPaused: newPauseState,
+      pausedBy: address,
+    });
   };
+
+  const isPaused = pauseStatus?.is_paused || false;
 
   return (
     <Card className="border-border/40 bg-gradient-card backdrop-blur-sm p-6">
@@ -125,8 +102,8 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Badge variant={pool.paused ? 'destructive' : 'default'}>
-            {pool.paused ? 'Paused' : 'Active'}
+          <Badge variant={isPaused ? 'destructive' : 'default'}>
+            {isPaused ? 'Paused (UI)' : 'Active'}
           </Badge>
           {pool.rewardsPerSecond === 0n && (
             <Badge variant="outline" className="bg-yellow-500/10 border-yellow-500/30">
@@ -189,20 +166,20 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
         {/* Pause/Unpause */}
         <div className="pt-4 border-t border-border/40">
           <Button
-            variant={pool.paused ? 'default' : 'destructive'}
+            variant={isPaused ? 'default' : 'destructive'}
             className="w-full"
             onClick={handleTogglePause}
-            disabled={pauseLoading || unpauseLoading}
+            disabled={togglePause.isPending}
           >
-            {pool.paused ? (
+            {isPaused ? (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                {unpauseLoading ? 'Unpausing...' : 'Unpause Pool'}
+                {togglePause.isPending ? 'Unpausing...' : 'Unpause Pool (UI Only)'}
               </>
             ) : (
               <>
                 <Pause className="w-4 h-4 mr-2" />
-                {pauseLoading ? 'Pausing...' : 'Pause Pool'}
+                {togglePause.isPending ? 'Pausing...' : 'Pause Pool (UI Only)'}
               </>
             )}
           </Button>

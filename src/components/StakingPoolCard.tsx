@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Lock, Unlock, Sparkles, Clock, AlertCircle, ArrowDownCircle } from 'lucide-react';
 import { usePoolInfo, useUserPoolInfo } from '@/hooks/useStakingPools';
+import { usePoolPauseStatus } from '@/hooks/usePoolPauseStatus';
 import { useStakingDeposit, useStakingWithdraw, useStakingHarvest, useTokenApproval } from '@/hooks/useStakingActions';
 import { useFormattedBalance, useTokenMeta } from '@/hooks/useErc20';
 import { useTokenPrice, calculateVirtualAPR, calculateVirtualTVL } from '@/hooks/useTokenPrice';
@@ -57,6 +58,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
   const { userInfo, refetch: refetchUser } = useUserPoolInfo(pid, walletAddress);
+  const { data: pauseStatus } = usePoolPauseStatus(pid);
   
   const stakeTokenMeta = useTokenMeta(pool?.stakeToken ?? '0x0');
   const rewardTokenMeta = useTokenMeta(pool?.rewardToken ?? '0x0');
@@ -307,13 +309,13 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
             </div>
           </div>
           <div className="flex flex-col gap-2 items-end">
-            {pool.paused && (
+            {pauseStatus?.is_paused && (
               <Badge variant="destructive" className="text-xs">
                 <AlertCircle className="w-3 h-3 mr-1" />
-                Paused
+                Paused (UI)
               </Badge>
             )}
-            {pool.rewardsPerSecond === 0n && !pool.paused && (
+            {pool.rewardsPerSecond === 0n && !pauseStatus?.is_paused && (
               <Badge variant="outline" className="text-xs bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400">
                 <Clock className="w-3 h-3 mr-1" />
                 Not Active
@@ -367,6 +369,14 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
               <>
                 <div className="space-y-2">
                   <Label htmlFor={`stake-${pid}`}>Amount</Label>
+                  {pauseStatus?.is_paused && (
+                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md mb-2">
+                      <p className="text-xs text-destructive flex items-center gap-2">
+                        <AlertCircle className="w-4 h-4" />
+                        This pool is temporarily paused by admin
+                      </p>
+                    </div>
+                  )}
                   <div className="flex gap-2">
                     <Input
                       id={`stake-${pid}`}
@@ -375,13 +385,13 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                       placeholder="0.0"
                       value={stakeAmount}
                       onChange={(e) => setStakeAmount(e.target.value)}
-                      disabled={pool.paused}
+                      disabled={pauseStatus?.is_paused}
                     />
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setStakeAmount(stakeBalance.formatted)}
-                      disabled={pool.paused}
+                      disabled={pauseStatus?.is_paused}
                     >
                       MAX
                     </Button>
@@ -421,7 +431,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                         <Button
                           className="w-full"
                           onClick={handleApprove}
-                          disabled={approvePending || pool.paused}
+                          disabled={approvePending || pauseStatus?.is_paused}
                         >
                           <Lock className="w-4 h-4 mr-2" />
                           {approvePending ? 'Approving...' : `Approve ${stakeSymbol}`}
@@ -439,7 +449,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                       onClick={handleDeposit}
                       disabled={
                         depositPending || 
-                        pool.paused || 
+                        pauseStatus?.is_paused || 
                         !stakeBalance.balance || 
                         (stakeBalance.balance && inputAmount > stakeBalance.balance)
                       }
@@ -508,7 +518,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
               size="sm"
               variant="outline"
               onClick={handleHarvest}
-              disabled={!isConnected || harvestPending || userInfo.pending === 0n || pool.paused}
+              disabled={!isConnected || harvestPending || userInfo.pending === 0n || pauseStatus?.is_paused}
             >
               {harvestPending ? 'Claiming...' : 'Claim'}
             </Button>
