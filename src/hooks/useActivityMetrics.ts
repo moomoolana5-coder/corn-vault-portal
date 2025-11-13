@@ -47,7 +47,7 @@ export function useUpdateActivityMetric() {
         })
         .eq('metric_name', metricName)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
