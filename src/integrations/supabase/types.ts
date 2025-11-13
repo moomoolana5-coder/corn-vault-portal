@@ -65,6 +65,45 @@ export type Database = {
         }
         Relationships: []
       }
+      staking_locks: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          is_active: boolean
+          lock_duration_days: number
+          locked_at: string
+          pool_id: number
+          unlock_at: string
+          updated_at: string
+          user_address: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lock_duration_days: number
+          locked_at?: string
+          pool_id: number
+          unlock_at: string
+          updated_at?: string
+          user_address: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          lock_duration_days?: number
+          locked_at?: string
+          pool_id?: number
+          unlock_at?: string
+          updated_at?: string
+          user_address?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

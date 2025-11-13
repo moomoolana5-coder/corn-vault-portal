@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,12 +17,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Lock, Unlock, Sparkles, Clock, AlertCircle, ArrowDownCircle } from 'lucide-react';
+import { Lock, Unlock, Sparkles, Clock, AlertCircle, ArrowDownCircle, Timer } from 'lucide-react';
 import { usePoolInfo, useUserPoolInfo } from '@/hooks/useStakingPools';
 import { usePoolPauseStatus } from '@/hooks/usePoolPauseStatus';
 import { useStakingDeposit, useStakingWithdraw, useStakingHarvest, useTokenApproval } from '@/hooks/useStakingActions';
 import { useFormattedBalance, useTokenMeta } from '@/hooks/useErc20';
 import { useTokenPrice, calculateVirtualAPR, calculateVirtualTVL } from '@/hooks/useTokenPrice';
+import { useActiveLockPeriod, useCreateLockPeriod, useDeactivateLockPeriod, useRemainingLockTime } from '@/hooks/useLockPeriod';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance, compactNumber } from '@/lib/format';
 import { toast } from '@/hooks/use-toast';
@@ -53,12 +55,17 @@ const TOKEN_ICONS: Record<string, string> = {
 export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: StakingPoolCardProps) {
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
+  const [lockDuration, setLockDuration] = useState<string>('7');
   const [showVirtualAPR, setShowVirtualAPR] = useState(true);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
   const { userInfo, refetch: refetchUser } = useUserPoolInfo(pid, walletAddress);
   const { data: pauseStatus } = usePoolPauseStatus(pid);
+  const { lockPeriod, isLocked, unlockAt } = useActiveLockPeriod(pid, walletAddress);
+  const { createLockPeriod } = useCreateLockPeriod();
+  const { deactivateLockPeriod } = useDeactivateLockPeriod();
+  const remainingTime = useRemainingLockTime(unlockAt);
   
   const stakeTokenMeta = useTokenMeta(pool?.stakeToken ?? '0x0');
   const rewardTokenMeta = useTokenMeta(pool?.rewardToken ?? '0x0');
@@ -156,7 +163,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   };
 
   const handleDeposit = async () => {
-    if (!stakeAmount || !stakeTokenMeta.decimals) {
+    if (!stakeAmount || !stakeTokenMeta.decimals || !walletAddress) {
       toast({
         title: 'Invalid Amount',
         description: 'Please enter a valid stake amount',
@@ -198,7 +205,17 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
         return;
       }
 
+      // Execute deposit
       await deposit(pid, stakeAmount, stakeTokenMeta.decimals);
+
+      // Save lock period to database
+      await createLockPeriod({
+        userAddress: walletAddress,
+        poolId: pid,
+        lockDurationDays: parseInt(lockDuration),
+        amount: stakeAmount,
+      });
+
     } catch (error) {
       console.error('Deposit error:', error);
       toast({
@@ -214,6 +231,16 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
       toast({
         title: 'Invalid Amount',
         description: 'Please enter a valid unstake amount',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    // Check if locked
+    if (isLocked) {
+      toast({
+        title: 'Stake is Locked',
+        description: `Your stake is locked until ${unlockAt?.toLocaleString()}. Remaining time: ${remainingTime}`,
         variant: 'destructive',
       });
       return;
@@ -257,6 +284,16 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const handleWithdrawConfirm = async () => {
     try {
       await withdraw(pid, unstakeAmount, stakeTokenMeta.decimals);
+      
+      // Deactivate lock period after successful withdrawal
+      if (lockPeriod && walletAddress) {
+        await deactivateLockPeriod({
+          lockId: lockPeriod.id,
+          poolId: pid,
+          userAddress: walletAddress,
+        });
+      }
+      
       setShowWithdrawDialog(false);
     } catch (error) {
       console.error('Withdraw error:', error);
@@ -269,6 +306,14 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   };
 
   const handleHarvest = async () => {
+    if (isLocked) {
+      toast({
+        title: 'Rewards are Locked',
+        description: `You cannot claim rewards while your stake is locked. Remaining time: ${remainingTime}`,
+        variant: 'destructive',
+      });
+      return;
+    }
     await harvest(pid);
   };
 
@@ -346,6 +391,22 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
           </div>
         </div>
 
+        {/* Lock Status Badge */}
+        {isConnected && isLocked && lockPeriod && (
+          <div className="mb-6 p-4 rounded-lg bg-orange-500/10 border border-orange-500/30">
+            <div className="flex items-center gap-2 mb-2">
+              <Timer className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+              <p className="text-sm font-semibold text-orange-600 dark:text-orange-400">Stake Locked</p>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Unlocks in: <span className="font-bold text-foreground">{remainingTime}</span>
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Lock duration: {lockPeriod.lock_duration_days} days
+            </p>
+          </div>
+        )}
+
         {/* Tabs */}
         <Tabs defaultValue="stake" className="w-full">
           <TabsList className="grid w-full grid-cols-2 bg-muted/50">
@@ -361,6 +422,27 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
               </div>
             ) : (
               <>
+                {/* Lock Duration Selector */}
+                <div className="space-y-2">
+                  <Label htmlFor={`lock-duration-${pid}`}>Lock Period</Label>
+                  <Select value={lockDuration} onValueChange={setLockDuration}>
+                    <SelectTrigger id={`lock-duration-${pid}`}>
+                      <SelectValue placeholder="Select lock duration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 Day</SelectItem>
+                      <SelectItem value="3">3 Days</SelectItem>
+                      <SelectItem value="7">7 Days (1 Week)</SelectItem>
+                      <SelectItem value="14">14 Days (2 Weeks)</SelectItem>
+                      <SelectItem value="21">21 Days (3 Weeks)</SelectItem>
+                      <SelectItem value="30">30 Days (1 Month)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    ⚠️ You cannot unstake or claim rewards until lock period ends
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor={`stake-${pid}`}>Amount</Label>
                   {pauseStatus?.is_paused && (
@@ -488,11 +570,16 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                   className="w-full"
                   variant="secondary"
                   onClick={handleWithdrawClick}
-                  disabled={!unstakeAmount || withdrawPending || userInfo.amount === 0n}
+                  disabled={!unstakeAmount || withdrawPending || userInfo.amount === 0n || isLocked}
                 >
                   <Unlock className="w-4 h-4 mr-2" />
-                  {withdrawPending ? 'Unstaking...' : `Unstake ${stakeSymbol}`}
+                  {withdrawPending ? 'Unstaking...' : isLocked ? 'Locked' : `Unstake ${stakeSymbol}`}
                 </Button>
+                {isLocked && (
+                  <p className="text-xs text-center text-orange-600 dark:text-orange-400">
+                    Cannot unstake while locked. Remaining: {remainingTime}
+                  </p>
+                )}
               </>
             )}
           </TabsContent>
@@ -512,9 +599,9 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
               size="sm"
               variant="outline"
               onClick={handleHarvest}
-              disabled={!isConnected || harvestPending || userInfo.pending === 0n || pauseStatus?.is_paused}
+              disabled={!isConnected || harvestPending || userInfo.pending === 0n || pauseStatus?.is_paused || isLocked}
             >
-              {harvestPending ? 'Claiming...' : 'Claim'}
+              {harvestPending ? 'Claiming...' : isLocked ? 'Locked' : 'Claim'}
             </Button>
           </div>
         </div>
