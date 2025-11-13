@@ -7,6 +7,7 @@ const API_BASE = 'https://deep-index.moralis.io/api/v2.2';
 const CHAIN = 'pulsechain';
 const CONTROLLER_ADDRESS = '0x9D86aB0c305633A1e77cfEADF62d07AB70e7CCf5';
 const LP_TOKEN_ADDRESS = '0x02E711624e739005a365dC094e59D65e593b65C7';
+const CORN_TOKEN_ADDRESS = '0xd7661cce8EeD01CBAA0188FAcdDE2e46c4Ebe4B0';
 const DEAD_ADDRESS = '0x000000000000000000000000000000000000dEaD';
 
 export interface ActivityMetrics {
@@ -41,36 +42,67 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
       setLoading(true);
       setError(null);
 
-      // Fetch LP token burns (Transfer to DEAD address)
-      const lpBurnsUrl = `${API_BASE}/erc20/${LP_TOKEN_ADDRESS}/transfers?chain=${CHAIN}&to_address=${DEAD_ADDRESS}&limit=100`;
-      const lpBurnsResponse = await fetch(lpBurnsUrl, {
-        headers: {
-          'X-API-Key': MORALIS_API_KEY,
-          'accept': 'application/json',
-        },
-      });
-
+      // Fetch LP token burns (Transfer to DEAD address) with pagination
       let lpBurnTransfers: any[] = [];
-      if (lpBurnsResponse.ok) {
-        const lpBurnsData = await lpBurnsResponse.json();
-        lpBurnTransfers = lpBurnsData.result || [];
+      {
+        let cursor: string | null = null;
+        do {
+          const url = new URL(`${API_BASE}/erc20/${LP_TOKEN_ADDRESS}/transfers`);
+          url.searchParams.set('chain', CHAIN);
+          url.searchParams.set('to_address', DEAD_ADDRESS);
+          url.searchParams.set('limit', '100');
+          if (cursor) url.searchParams.set('cursor', cursor);
+
+          const resp = await fetch(url.toString(), {
+            headers: { 'X-API-Key': MORALIS_API_KEY, accept: 'application/json' },
+          });
+          if (!resp.ok) break;
+          const data = await resp.json();
+          lpBurnTransfers.push(...(data.result || []));
+          cursor = data.cursor || null;
+        } while (cursor && lpBurnTransfers.length < 1000);
       }
 
-      // Fetch wallet transactions
-      const txsUrl = `${API_BASE}/${CONTROLLER_ADDRESS}`;
-      const txsResponse = await fetch(txsUrl, {
-        headers: {
-          'X-API-Key': MORALIS_API_KEY,
-          'accept': 'application/json',
-        },
-      });
+      // Fetch CORN burns (Transfer CORN -> DEAD) with pagination
+      let cornBurnTransfers: any[] = [];
+      {
+        let cursor: string | null = null;
+        do {
+          const url = new URL(`${API_BASE}/erc20/${CORN_TOKEN_ADDRESS}/transfers`);
+          url.searchParams.set('chain', CHAIN);
+          url.searchParams.set('to_address', DEAD_ADDRESS);
+          url.searchParams.set('limit', '100');
+          if (cursor) url.searchParams.set('cursor', cursor);
 
-      if (!txsResponse.ok) {
-        throw new Error(`Failed to fetch transactions: ${txsResponse.statusText}`);
+          const resp = await fetch(url.toString(), {
+            headers: { 'X-API-Key': MORALIS_API_KEY, accept: 'application/json' },
+          });
+          if (!resp.ok) break;
+          const data = await resp.json();
+          cornBurnTransfers.push(...(data.result || []));
+          cursor = data.cursor || null;
+        } while (cursor && cornBurnTransfers.length < 1000);
       }
 
-      const txsData = await txsResponse.json();
-      const transactions = txsData.result || [];
+      // Fetch wallet transactions (pagination)
+      const transactions: any[] = [];
+      {
+        let cursor: string | null = null;
+        do {
+          const url = new URL(`${API_BASE}/${CONTROLLER_ADDRESS}/transactions`);
+          url.searchParams.set('chain', CHAIN);
+          url.searchParams.set('limit', '100');
+          if (cursor) url.searchParams.set('cursor', cursor);
+
+          const resp = await fetch(url.toString(), {
+            headers: { 'X-API-Key': MORALIS_API_KEY, accept: 'application/json' },
+          });
+          if (!resp.ok) break;
+          const data = await resp.json();
+          transactions.push(...(data.result || []));
+          cursor = data.cursor || null;
+        } while (cursor && transactions.length < 500);
+      }
 
       // Aggregate metrics and collect activities
       let totalLpBurned = 0n;
@@ -91,6 +123,23 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
             date: new Date(transfer.block_timestamp),
             txHash: transfer.transaction_hash,
             type: 'LP_BURN',
+            value: formatUnits(burnAmount, 18),
+            blockNumber: parseInt(transfer.block_number),
+          });
+        }
+      });
+
+      // Process CORN burns via ERC20 Transfer to DEAD
+      cornBurnTransfers.forEach((transfer: any) => {
+        if (transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()) {
+          const burnAmount = BigInt(transfer.value || 0);
+          totalCornBurned += burnAmount;
+
+          activityList.push({
+            id: `corn-${transfer.transaction_hash}-${transfer.log_index}`,
+            date: new Date(transfer.block_timestamp),
+            txHash: transfer.transaction_hash,
+            type: 'CORN_BURN',
             value: formatUnits(burnAmount, 18),
             blockNumber: parseInt(transfer.block_number),
           });
