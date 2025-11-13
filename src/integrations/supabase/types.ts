@@ -14,7 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_metrics: {
+        Row: {
+          id: string
+          metric_name: string
+          updated_at: string
+          updated_by: string | null
+          value: number
+        }
+        Insert: {
+          id?: string
+          metric_name: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: number
+        }
+        Update: {
+          id?: string
+          metric_name?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
