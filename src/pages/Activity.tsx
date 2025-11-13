@@ -123,11 +123,6 @@ export default function Activity() {
                         <div className="text-2xl font-bold text-primary">
                           {metric.value.toLocaleString()}
                         </div>
-                        {metric.updated_at && (
-                          <div className="text-xs text-muted-foreground mt-1">
-                            Last updated: {new Date(metric.updated_at).toLocaleString()}
-                          </div>
-                        )}
                       </div>
 
                       {isAdmin && !isCheckingAdmin && (
