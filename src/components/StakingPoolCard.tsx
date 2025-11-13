@@ -71,7 +71,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const rewardTokenPrice = useTokenPrice(pool?.rewardToken ?? '0x0');
 
   const { deposit, isPending: depositPending, isSuccess: depositSuccess } = useStakingDeposit();
-  const { withdraw, isPending: withdrawPending, isSuccess: withdrawSuccess } = useStakingWithdraw();
+  const { withdraw, isPending: withdrawPending, isSuccess: withdrawSuccess, isError: withdrawError } = useStakingWithdraw();
   const { harvest, isPending: harvestPending, isSuccess: harvestSuccess } = useStakingHarvest();
   const { allowance, approve, isPending: approvePending, isSuccess: approveSuccess, refetch: refetchAllowance } = useTokenApproval(
     pool?.stakeToken ?? '0x0',
@@ -103,6 +103,17 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
       }
     }
   }, [depositSuccess, withdrawSuccess, harvestSuccess, approveSuccess]);
+
+  useEffect(() => {
+    if (withdrawError) {
+      setShowWithdrawDialog(false);
+      toast({
+        title: 'Transaction Failed',
+        description: 'The withdrawal transaction failed. This may be because the pool does not have enough reward tokens. Please try again later or contact support.',
+        variant: 'destructive',
+      });
+    }
+  }, [withdrawError]);
 
   if (!pool || poolLoading) {
     return (
@@ -555,6 +566,11 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                         <p className="text-xs text-muted-foreground mt-2">
                           Your pending rewards will be automatically claimed during withdrawal
                         </p>
+                        <div className="mt-2 p-2 rounded bg-yellow-500/10 border border-yellow-500/20">
+                          <p className="text-xs text-yellow-600 dark:text-yellow-400">
+                            ⚠️ If withdrawal fails, it may be due to insufficient reward tokens in the pool contract.
+                          </p>
+                        </div>
                       </div>
                     )}
                   </div>

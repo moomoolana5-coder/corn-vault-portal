@@ -43,7 +43,12 @@ export function useStakingDeposit() {
 
 export function useStakingWithdraw() {
   const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
+  const { isLoading: isConfirming, isSuccess, isError } = useWaitForTransactionReceipt({ 
+    hash,
+    query: {
+      enabled: !!hash,
+    }
+  });
 
   const withdraw = async (pid: number, amount: string, decimals: number) => {
     try {
@@ -65,16 +70,40 @@ export function useStakingWithdraw() {
       } as any);
     } catch (err) {
       console.error('Withdraw writeContract error:', err);
-      toast({
-        title: 'Withdraw Failed',
-        description: err instanceof Error ? err.message : 'Transaction rejected',
-        variant: 'destructive',
-      });
+      const errorMessage = err instanceof Error ? err.message : 'Transaction rejected';
+      
+      // Check for common error patterns
+      if (errorMessage.includes('ERC20_CALL_FAIL') || errorMessage.includes('transfer failed')) {
+        toast({
+          title: 'Insufficient Reward Tokens',
+          description: 'The staking contract does not have enough reward tokens. Please contact the pool administrator or try harvesting rewards separately.',
+          variant: 'destructive',
+        });
+      } else if (errorMessage.includes('insufficient')) {
+        toast({
+          title: 'Insufficient Balance',
+          description: 'You do not have enough staked tokens to withdraw this amount.',
+          variant: 'destructive',
+        });
+      } else {
+        toast({
+          title: 'Withdraw Failed',
+          description: errorMessage,
+          variant: 'destructive',
+        });
+      }
       throw err;
     }
   };
 
-  return { withdraw, hash, isPending: isPending || isConfirming, isSuccess, error };
+  return { 
+    withdraw, 
+    hash, 
+    isPending: isPending || isConfirming, 
+    isSuccess, 
+    isError,
+    error 
+  };
 }
 
 export function useStakingHarvest() {
