@@ -204,12 +204,8 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
                   });
                 } else if (decoded.type === 'BUYBACK') {
                   const burnAmount = BigInt(decoded.data.burnedAmount || decoded.data.cornBurned || 0);
-                  
-                  // Skip jika tx sudah diproses via Transfer (avoid duplikasi)
-                  if (!processedTxHashes.has(tx.hash)) {
-                    totalCornBurned += burnAmount;
-                  }
-                  
+                  // CORN Burned metric hanya dihitung dari ERC20 Transfer -> burn address.
+                  // Di sini kita hanya catat untuk metrik Buyback dan activity log.
                   totalBuyback += burnAmount;
 
                   activityList.push({
