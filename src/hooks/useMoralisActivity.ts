@@ -95,6 +95,7 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
           const url = new URL(`${API_BASE}/erc20/${CORN_TOKEN_ADDRESS}/transfers`);
           url.searchParams.set('chain', CHAIN);
           url.searchParams.set('to_address', DEAD_ADDRESS);
+          url.searchParams.set('from_address', CONTROLLER_ADDRESS);
           url.searchParams.set('limit', '100');
           if (cursor) url.searchParams.set('cursor', cursor);
 
