@@ -3,9 +3,14 @@ import { Button } from './ui/button';
 import { NavLink } from './NavLink';
 import { Menu, X } from 'lucide-react';
 import { useState } from 'react';
+import { useAccount } from 'wagmi';
+
+const ADMIN_ADDRESS = '0x9d86ab0c305633a1e77cfeadf62d07ab70e7ccf5';
 
 export function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const { address } = useAccount();
+  const isAdmin = address?.toLowerCase() === ADMIN_ADDRESS.toLowerCase();
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,13 +41,15 @@ export function Navbar() {
             >
               Staking
             </NavLink>
-            <NavLink
-              to="/admin"
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              activeClassName="text-primary"
-            >
-              Admin
-            </NavLink>
+            {isAdmin && (
+              <NavLink
+                to="/admin"
+                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
+                activeClassName="text-primary"
+              >
+                Admin
+              </NavLink>
+            )}
             <NavLink
               to="/activity"
               className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
@@ -92,14 +99,16 @@ export function Navbar() {
               >
                 Staking
               </NavLink>
-              <NavLink
-                to="/admin"
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-                activeClassName="text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Admin
-              </NavLink>
+              {isAdmin && (
+                <NavLink
+                  to="/admin"
+                  className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
+                  activeClassName="text-primary"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Admin
+                </NavLink>
+              )}
               <NavLink
                 to="/activity"
                 className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
