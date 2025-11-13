@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Vault from "./pages/Vault";
 import Staking from "./pages/Staking";
 import Admin from "./pages/Admin";
+import Activity from "./pages/Activity";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/vault" element={<Vault />} />
             <Route path="/staking" element={<Staking />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/activity" element={<Activity />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
