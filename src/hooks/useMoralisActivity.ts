@@ -154,8 +154,35 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
         }
       });
 
-      // Process CORN burns via ERC20 Transfer to DEAD (sumber utama untuk CORN burned)
-      cornBurnTransfers.forEach((transfer: any) => {
+      // Process CORN burns via ERC20 Transfer to DEAD (hanya dari controller & tx initiator = controller)
+      const controllerBurnTransfers = cornBurnTransfers.filter(
+        (transfer: any) => transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()
+      );
+
+      const uniqueHashes = Array.from(new Set(controllerBurnTransfers.map((t: any) => t.transaction_hash)));
+      const validHashes = new Set<string>();
+
+      await Promise.all(
+        uniqueHashes.map(async (hash: string) => {
+          try {
+            const verboseUrl = `${API_BASE}/transaction/${hash}/verbose?chain=${CHAIN}`;
+            const resp = await fetch(verboseUrl, {
+              headers: { 'X-API-Key': MORALIS_API_KEY, accept: 'application/json' },
+            });
+            if (!resp.ok) return;
+            const v = await resp.json();
+            const fromAddr = (
+              v.from_address || v.from || v?.transaction?.from_address || ''
+            )?.toLowerCase?.();
+            if (fromAddr === CONTROLLER_ADDRESS.toLowerCase()) {
+              validHashes.add(hash);
+            }
+          } catch {}
+        })
+      );
+
+      controllerBurnTransfers.forEach((transfer: any) => {
+        if (!validHashes.has(transfer.transaction_hash)) return;
         const burnAmount = BigInt(transfer.value || 0);
         totalCornBurned += burnAmount;
         processedTxHashes.add(transfer.transaction_hash); // Track tx hash
