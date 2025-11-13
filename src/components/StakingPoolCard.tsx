@@ -309,13 +309,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
             </div>
           </div>
           <div className="flex flex-col gap-2 items-end">
-            {pauseStatus?.is_paused && (
-              <Badge variant="destructive" className="text-xs">
-                <AlertCircle className="w-3 h-3 mr-1" />
-                Paused (UI)
-              </Badge>
-            )}
-            {pool.rewardsPerSecond === 0n && !pauseStatus?.is_paused && (
+            {(pauseStatus?.is_paused || pool.rewardsPerSecond === 0n) && (
               <Badge variant="outline" className="text-xs bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400">
                 <Clock className="w-3 h-3 mr-1" />
                 Not Active
@@ -370,10 +364,10 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                 <div className="space-y-2">
                   <Label htmlFor={`stake-${pid}`}>Amount</Label>
                   {pauseStatus?.is_paused && (
-                    <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-md mb-2">
-                      <p className="text-xs text-destructive flex items-center gap-2">
-                        <AlertCircle className="w-4 h-4" />
-                        This pool is temporarily paused by admin
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-md mb-2">
+                      <p className="text-xs text-yellow-600 dark:text-yellow-400 flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        This pool is temporarily not active
                       </p>
                     </div>
                   )}

@@ -91,6 +91,8 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
 
   const isPaused = pauseStatus?.is_paused || false;
 
+  const isPoolActive = !isPaused && pool.rewardsPerSecond > 0n;
+
   return (
     <Card className="border-border/40 bg-gradient-card backdrop-blur-sm p-6">
       {/* Pool Header */}
@@ -102,8 +104,8 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
           </p>
         </div>
         <div className="flex gap-2">
-          <Badge variant={isPaused ? 'destructive' : 'default'}>
-            {isPaused ? 'Paused (UI)' : 'Active'}
+          <Badge variant={isPaused ? 'outline' : 'default'} className={isPaused ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-600 dark:text-yellow-400' : ''}>
+            {isPaused ? 'Not Active' : 'Active'}
           </Badge>
           {pool.rewardsPerSecond === 0n && (
             <Badge variant="outline" className="bg-yellow-500/10 border-yellow-500/30">
@@ -166,7 +168,7 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
         {/* Pause/Unpause */}
         <div className="pt-4 border-t border-border/40">
           <Button
-            variant={isPaused ? 'default' : 'destructive'}
+            variant={isPaused ? 'default' : 'outline'}
             className="w-full"
             onClick={handleTogglePause}
             disabled={togglePause.isPending}
@@ -174,12 +176,12 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
             {isPaused ? (
               <>
                 <Play className="w-4 h-4 mr-2" />
-                {togglePause.isPending ? 'Unpausing...' : 'Unpause Pool (UI Only)'}
+                {togglePause.isPending ? 'Activating...' : 'Activate Pool'}
               </>
             ) : (
               <>
                 <Pause className="w-4 h-4 mr-2" />
-                {togglePause.isPending ? 'Pausing...' : 'Pause Pool (UI Only)'}
+                {togglePause.isPending ? 'Deactivating...' : 'Deactivate Pool'}
               </>
             )}
           </Button>
