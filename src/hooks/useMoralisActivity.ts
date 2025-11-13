@@ -110,6 +110,7 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
       let totalRoutedStaking = 0n;
       let totalBuyback = 0n;
       const activityList: ActivityRecord[] = [];
+      const processedTxHashes = new Set<string>(); // Track untuk avoid duplikasi
 
       // Process LP burns first
       lpBurnTransfers.forEach((transfer: any) => {
@@ -129,11 +130,12 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
         }
       });
 
-      // Process CORN burns via ERC20 Transfer to DEAD
+      // Process CORN burns via ERC20 Transfer to DEAD (sumber utama untuk CORN burned)
       cornBurnTransfers.forEach((transfer: any) => {
         if (transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()) {
           const burnAmount = BigInt(transfer.value || 0);
           totalCornBurned += burnAmount;
+          processedTxHashes.add(transfer.transaction_hash); // Track tx hash
 
           activityList.push({
             id: `corn-${transfer.transaction_hash}-${transfer.log_index}`,
@@ -202,7 +204,12 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
                   });
                 } else if (decoded.type === 'BUYBACK') {
                   const burnAmount = BigInt(decoded.data.burnedAmount || decoded.data.cornBurned || 0);
-                  totalCornBurned += burnAmount;
+                  
+                  // Skip jika tx sudah diproses via Transfer (avoid duplikasi)
+                  if (!processedTxHashes.has(tx.hash)) {
+                    totalCornBurned += burnAmount;
+                  }
+                  
                   totalBuyback += burnAmount;
 
                   activityList.push({
