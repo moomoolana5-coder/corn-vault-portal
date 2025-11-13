@@ -43,20 +43,6 @@ export function Navbar() {
             >
               Admin
             </NavLink>
-            <NavLink
-              to="/control-supply"
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              activeClassName="text-primary"
-            >
-              Control Supply
-            </NavLink>
-            <NavLink
-              to="/monitor"
-              className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors"
-              activeClassName="text-primary"
-            >
-              Monitor
-            </NavLink>
             <div className="ml-4">
               <w3m-button />
             </div>
@@ -106,22 +92,6 @@ export function Navbar() {
                 onClick={() => setIsOpen(false)}
               >
                 Admin
-              </NavLink>
-              <NavLink
-                to="/control-supply"
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-                activeClassName="text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Control Supply
-              </NavLink>
-              <NavLink
-                to="/monitor"
-                className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors py-2"
-                activeClassName="text-primary"
-                onClick={() => setIsOpen(false)}
-              >
-                Monitor
               </NavLink>
               <div className="pt-2">
                 <w3m-button />
