@@ -6,6 +6,8 @@ const MORALIS_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjcyYz
 const API_BASE = 'https://deep-index.moralis.io/api/v2.2';
 const CHAIN = 'pulsechain';
 const CONTROLLER_ADDRESS = '0x9D86aB0c305633A1e77cfEADF62d07AB70e7CCf5';
+const LP_TOKEN_ADDRESS = '0x02E711624e739005a365dC094e59D65e593b65C7';
+const DEAD_ADDRESS = '0x000000000000000000000000000000000000dEaD';
 
 export interface ActivityMetrics {
   lpBurned: string;
@@ -39,6 +41,21 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
       setLoading(true);
       setError(null);
 
+      // Fetch LP token burns (Transfer to DEAD address)
+      const lpBurnsUrl = `${API_BASE}/erc20/${LP_TOKEN_ADDRESS}/transfers?chain=${CHAIN}&to_address=${DEAD_ADDRESS}&limit=100`;
+      const lpBurnsResponse = await fetch(lpBurnsUrl, {
+        headers: {
+          'X-API-Key': MORALIS_API_KEY,
+          'accept': 'application/json',
+        },
+      });
+
+      let lpBurnTransfers: any[] = [];
+      if (lpBurnsResponse.ok) {
+        const lpBurnsData = await lpBurnsResponse.json();
+        lpBurnTransfers = lpBurnsData.result || [];
+      }
+
       // Fetch wallet transactions
       const txsUrl = `${API_BASE}/${CONTROLLER_ADDRESS}`;
       const txsResponse = await fetch(txsUrl, {
@@ -61,6 +78,24 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
       let totalRoutedStaking = 0n;
       let totalBuyback = 0n;
       const activityList: ActivityRecord[] = [];
+
+      // Process LP burns first
+      lpBurnTransfers.forEach((transfer: any) => {
+        // Only count burns from controller address
+        if (transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()) {
+          const burnAmount = BigInt(transfer.value || 0);
+          totalLpBurned += burnAmount;
+
+          activityList.push({
+            id: `lp-${transfer.transaction_hash}-${transfer.log_index}`,
+            date: new Date(transfer.block_timestamp),
+            txHash: transfer.transaction_hash,
+            type: 'LP_BURN',
+            value: formatUnits(burnAmount, 18),
+            blockNumber: parseInt(transfer.block_number),
+          });
+        }
+      });
 
       // Process transactions in batches
       const batchSize = 10;
