@@ -89,34 +89,8 @@ export default function Staking() {
                 <h4 className="text-base md:text-lg font-bold mb-3 md:mb-4 text-foreground">
                   Staking Information
                 </h4>
-                <ul className="space-y-2 md:space-y-3 text-xs sm:text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Pools are dynamically loaded from on-chain contract data</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-green-500 font-bold mt-0.5 flex-shrink-0">✓</span>
-                    <span><strong className="text-green-600 dark:text-green-400">Live Price</strong>: Real-time token prices from DexScreener API (fallback to virtual prices if unavailable)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-yellow-500 font-bold mt-0.5 flex-shrink-0">⚠</span>
-                    <span><strong className="text-yellow-600 dark:text-yellow-400">Pools marked "Not Active"</strong> need rewards configuration by contract admin before earning begins</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-orange-500 font-bold mt-0.5 flex-shrink-0">🔒</span>
-                    <span><strong className="text-orange-600 dark:text-orange-400">Lock Period (1-30 days)</strong>: You must choose a lock duration when staking. During the lock period, you cannot unstake or claim rewards</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Paused pools allow withdrawals but not deposits or harvests</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>All interactions are non-custodial and secured by smart contracts</span>
-                  </li>
-                </ul>
 
-                <div className="mt-6 pt-6 border-t border-border/40">
+                <div className="pt-2">
                   <h5 className="text-sm md:text-base font-semibold mb-3 text-foreground">
                     📊 APR & TVL Calculations
                   </h5>
