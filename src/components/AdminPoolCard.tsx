@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, Save, Clock } from 'lucide-react';
+import { Play, Pause, Save, Clock, Zap } from 'lucide-react';
 import { usePoolInfo } from '@/hooks/useStakingPools';
-import { useSetEndTime } from '@/hooks/useStakingAdmin';
+import { useSetEndTime, useSetRewardsPerSecond } from '@/hooks/useStakingAdmin';
 import { usePoolPauseStatus, useTogglePoolPause } from '@/hooks/usePoolPauseStatus';
+import { useTokenMeta } from '@/hooks/useErc20';
 import { formatUnits } from 'viem';
 import { toast } from '@/hooks/use-toast';
 import { useAccount } from 'wagmi';
@@ -26,11 +27,13 @@ const TOKEN_SYMBOLS: Record<string, string> = {
 
 export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
   const [endTimeDate, setEndTimeDate] = useState('');
+  const [rpsValue, setRpsValue] = useState('');
   const { address } = useAccount();
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
   const { data: pauseStatus, isLoading: pauseStatusLoading } = usePoolPauseStatus(pid);
   const togglePause = useTogglePoolPause();
+  const rewardTokenMeta = useTokenMeta(pool?.rewardToken ?? '0x0');
 
   const { 
     setEndTime, 
@@ -38,6 +41,13 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
     isSuccess: endTimeSuccess,
     error: endTimeError 
   } = useSetEndTime();
+
+  const {
+    setRewardsPerSecond,
+    isPending: rpsLoading,
+    isSuccess: rpsSuccess,
+    error: rpsError
+  } = useSetRewardsPerSecond();
 
   useEffect(() => {
     if (endTimeSuccess) {
@@ -49,6 +59,15 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
   }, [endTimeSuccess]);
 
   useEffect(() => {
+    if (rpsSuccess) {
+      refetchPool();
+      onRefresh?.();
+      toast({ title: 'Success', description: 'Rewards per second updated successfully' });
+      setRpsValue('');
+    }
+  }, [rpsSuccess]);
+
+  useEffect(() => {
     if (endTimeError) {
       toast({ 
         title: 'Set End Time Failed', 
@@ -57,6 +76,16 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
       });
     }
   }, [endTimeError]);
+
+  useEffect(() => {
+    if (rpsError) {
+      toast({ 
+        title: 'Set Rewards Failed', 
+        description: rpsError.message || 'Transaction was rejected or failed',
+        variant: 'destructive' 
+      });
+    }
+  }, [rpsError]);
 
   if (!pool || poolLoading || pauseStatusLoading) {
     return (
@@ -68,14 +97,19 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
 
   const stakeSymbol = TOKEN_SYMBOLS[pool.stakeToken.toLowerCase()] || pool.stakeToken.slice(0, 6);
   const rewardSymbol = TOKEN_SYMBOLS[pool.rewardToken.toLowerCase()] || pool.rewardToken.slice(0, 6);
-  // RPS hidden in admin panel
-
-  // RPS hidden in admin panel
+  const currentRPS = pool.rewardsPerSecond > 0n 
+    ? formatUnits(pool.rewardsPerSecond, rewardTokenMeta.decimals || 18)
+    : '0';
 
   const handleSetEndTime = async () => {
     if (!endTimeDate) return;
     const timestamp = Math.floor(new Date(endTimeDate).getTime() / 1000);
     await setEndTime(pid, timestamp);
+  };
+
+  const handleSetRPS = async () => {
+    if (!rpsValue || !rewardTokenMeta.decimals) return;
+    await setRewardsPerSecond(pid, rpsValue, rewardTokenMeta.decimals);
   };
 
   const handleTogglePause = async () => {
@@ -124,6 +158,12 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
           </p>
         </div>
         <div>
+          <p className="text-xs text-muted-foreground mb-1">Current RPS</p>
+          <p className="text-sm font-semibold">
+            {currentRPS} {rewardSymbol}/s
+          </p>
+        </div>
+        <div>
           <p className="text-xs text-muted-foreground mb-1">End Time</p>
           <p className="text-sm font-semibold">
             {pool.endTime > 0n ? new Date(Number(pool.endTime) * 1000).toLocaleDateString() : 'Not Set'}
@@ -133,14 +173,39 @@ export function AdminPoolCard({ pid, onRefresh }: AdminPoolCardProps) {
           <p className="text-xs text-muted-foreground mb-1">Stake Token</p>
           <p className="text-sm font-semibold">{stakeSymbol}</p>
         </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Reward Token</p>
-          <p className="text-sm font-semibold">{rewardSymbol}</p>
-        </div>
       </div>
 
       {/* Admin Controls */}
       <div className="space-y-4">
+        {/* Set Rewards Per Second */}
+        <div className="space-y-2">
+          <Label htmlFor={`rps-${pid}`} className="flex items-center gap-2">
+            <Zap className="w-4 h-4" />
+            Set Rewards Per Second
+          </Label>
+          <div className="flex gap-2">
+            <Input
+              id={`rps-${pid}`}
+              type="number"
+              step="any"
+              placeholder={`e.g., 0.1 ${rewardSymbol}`}
+              value={rpsValue}
+              onChange={(e) => setRpsValue(e.target.value)}
+            />
+            <Button
+              onClick={handleSetRPS}
+              disabled={!rpsValue || rpsLoading || !rewardTokenMeta.decimals}
+              className="flex-shrink-0"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {rpsLoading ? 'Setting...' : 'Set'}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Current: {currentRPS} {rewardSymbol}/s
+          </p>
+        </div>
+
         {/* Set End Time */}
         <div className="space-y-2">
           <Label htmlFor={`endtime-${pid}`} className="flex items-center gap-2">
