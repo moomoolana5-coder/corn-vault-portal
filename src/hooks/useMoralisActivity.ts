@@ -87,7 +87,7 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
         } while (cursor && lpBurnTransfers.length < 1000);
       }
 
-      // Fetch CORN burns (Transfer CORN -> DEAD) with pagination
+      // Fetch CORN burns (ALL transfers CORN -> 0x...0369) with pagination
       let cornBurnTransfers: any[] = [];
       {
         let cursor: string | null = null;
@@ -95,7 +95,6 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
           const url = new URL(`${API_BASE}/erc20/${CORN_TOKEN_ADDRESS}/transfers`);
           url.searchParams.set('chain', CHAIN);
           url.searchParams.set('to_address', DEAD_ADDRESS);
-          url.searchParams.set('from_address', CONTROLLER_ADDRESS);
           url.searchParams.set('limit', '100');
           if (cursor) url.searchParams.set('cursor', cursor);
 
@@ -135,61 +134,39 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
       let totalRoutedStaking = 0n;
       let totalBuyback = 0n;
       const activityList: ActivityRecord[] = [];
-      const processedTxHashes = new Set<string>(); // Track untuk avoid duplikasi
+      const processedBurns = new Set<string>(); // Track unique (tx_hash, log_index)
 
-      // Process LP burns first
+      // Process LP burns (ALL transfers to sink 0x...0369)
       lpBurnTransfers.forEach((transfer: any) => {
-        // Only count burns from controller address
-        if (transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()) {
-          const burnAmount = BigInt(transfer.value || 0);
-          totalLpBurned += burnAmount;
-
-          activityList.push({
-            id: `lp-${transfer.transaction_hash}-${transfer.log_index}`,
-            date: new Date(transfer.block_timestamp),
-            txHash: transfer.transaction_hash,
-            type: 'LP_BURN',
-            value: formatUnits(burnAmount, lpDecimals),
-            blockNumber: parseInt(transfer.block_number),
-          });
-        }
-      });
-
-      // Process CORN burns via ERC20 Transfer to DEAD (hanya dari controller & tx initiator = controller)
-      const controllerBurnTransfers = cornBurnTransfers.filter(
-        (transfer: any) => transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()
-      );
-
-      const uniqueHashes = Array.from(new Set(controllerBurnTransfers.map((t: any) => t.transaction_hash)));
-      const validHashes = new Set<string>();
-
-      await Promise.all(
-        uniqueHashes.map(async (hash: string) => {
-          try {
-            const verboseUrl = `${API_BASE}/transaction/${hash}/verbose?chain=${CHAIN}`;
-            const resp = await fetch(verboseUrl, {
-              headers: { 'X-API-Key': MORALIS_API_KEY, accept: 'application/json' },
-            });
-            if (!resp.ok) return;
-            const v = await resp.json();
-            const fromAddr = (
-              v.from_address || v.from || v?.transaction?.from_address || ''
-            )?.toLowerCase?.();
-            if (fromAddr === CONTROLLER_ADDRESS.toLowerCase()) {
-              validHashes.add(hash);
-            }
-          } catch {}
-        })
-      );
-
-      controllerBurnTransfers.forEach((transfer: any) => {
-        if (!validHashes.has(transfer.transaction_hash)) return;
+        const uniqueKey = `lp-${transfer.transaction_hash}-${transfer.log_index}`;
+        if (processedBurns.has(uniqueKey)) return;
+        
+        processedBurns.add(uniqueKey);
         const burnAmount = BigInt(transfer.value || 0);
-        totalCornBurned += burnAmount;
-        processedTxHashes.add(transfer.transaction_hash); // Track tx hash
+        totalLpBurned += burnAmount;
 
         activityList.push({
-          id: `corn-${transfer.transaction_hash}-${transfer.log_index}`,
+          id: uniqueKey,
+          date: new Date(transfer.block_timestamp),
+          txHash: transfer.transaction_hash,
+          type: 'LP_BURN',
+          value: formatUnits(burnAmount, lpDecimals),
+          blockNumber: parseInt(transfer.block_number),
+        });
+      });
+
+      // Process CORN burns (ALL transfers CORN -> 0x...0369)
+      // Deduplicate based on (tx_hash, log_index)
+      cornBurnTransfers.forEach((transfer: any) => {
+        const uniqueKey = `corn-${transfer.transaction_hash}-${transfer.log_index}`;
+        if (processedBurns.has(uniqueKey)) return;
+        
+        processedBurns.add(uniqueKey);
+        const burnAmount = BigInt(transfer.value || 0);
+        totalCornBurned += burnAmount;
+
+        activityList.push({
+          id: uniqueKey,
           date: new Date(transfer.block_timestamp),
           txHash: transfer.transaction_hash,
           type: 'CORN_BURN',
