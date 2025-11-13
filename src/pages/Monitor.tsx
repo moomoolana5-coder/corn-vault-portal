@@ -23,7 +23,7 @@ const EXPLORER_URL = 'https://scan.pulsechain.com';
 type FilterType = 'ALL' | 'LP_BURN' | 'CORN_BURN' | 'ROUTED_STAKING' | 'BUYBACK';
 
 export default function Monitor() {
-  const { metrics, activities, loading, error, refetch } = useMoralisActivity(true, 30000);
+  const { metrics, activities, loading, error, refetch } = useMoralisActivity(false, 30000);
   const [filter, setFilter] = useState<FilterType>('ALL');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -258,7 +258,7 @@ export default function Monitor() {
               </div>
 
               <p className="text-xs text-muted-foreground mt-4 text-center">
-                Auto-refreshes every 30 seconds • Powered by Moralis API
+                Click Refresh button to update data • Powered by Moralis API
               </p>
             </div>
           </Card>
