@@ -42,6 +42,30 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
       setLoading(true);
       setError(null);
 
+      // Helpers
+      const getTokenDecimals = async (address: string): Promise<number> => {
+        try {
+          const url = new URL(`${API_BASE}/erc20/metadata`);
+          url.searchParams.set('chain', CHAIN);
+          url.searchParams.set('addresses', address);
+          const r = await fetch(url.toString(), {
+            headers: { 'X-API-Key': MORALIS_API_KEY, accept: 'application/json' },
+          });
+          if (!r.ok) return 18;
+          const j = await r.json();
+          const d = j?.[0]?.decimals ?? j?.result?.[0]?.decimals;
+          const n = Number(d);
+          return Number.isFinite(n) ? n : 18;
+        } catch {
+          return 18;
+        }
+      };
+
+      const [lpDecimals, cornDecimals] = await Promise.all([
+        getTokenDecimals(LP_TOKEN_ADDRESS),
+        getTokenDecimals(CORN_TOKEN_ADDRESS),
+      ]);
+
       // Fetch LP token burns (Transfer to DEAD address) with pagination
       let lpBurnTransfers: any[] = [];
       {
@@ -124,7 +148,7 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
             date: new Date(transfer.block_timestamp),
             txHash: transfer.transaction_hash,
             type: 'LP_BURN',
-            value: formatUnits(burnAmount, 18),
+            value: formatUnits(burnAmount, lpDecimals),
             blockNumber: parseInt(transfer.block_number),
           });
         }
@@ -132,20 +156,18 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
 
       // Process CORN burns via ERC20 Transfer to DEAD (sumber utama untuk CORN burned)
       cornBurnTransfers.forEach((transfer: any) => {
-        if (transfer.from_address?.toLowerCase() === CONTROLLER_ADDRESS.toLowerCase()) {
-          const burnAmount = BigInt(transfer.value || 0);
-          totalCornBurned += burnAmount;
-          processedTxHashes.add(transfer.transaction_hash); // Track tx hash
+        const burnAmount = BigInt(transfer.value || 0);
+        totalCornBurned += burnAmount;
+        processedTxHashes.add(transfer.transaction_hash); // Track tx hash
 
-          activityList.push({
-            id: `corn-${transfer.transaction_hash}-${transfer.log_index}`,
-            date: new Date(transfer.block_timestamp),
-            txHash: transfer.transaction_hash,
-            type: 'CORN_BURN',
-            value: formatUnits(burnAmount, 18),
-            blockNumber: parseInt(transfer.block_number),
-          });
-        }
+        activityList.push({
+          id: `corn-${transfer.transaction_hash}-${transfer.log_index}`,
+          date: new Date(transfer.block_timestamp),
+          txHash: transfer.transaction_hash,
+          type: 'CORN_BURN',
+          value: formatUnits(burnAmount, cornDecimals),
+          blockNumber: parseInt(transfer.block_number),
+        });
       });
 
       // Process transactions in batches
@@ -213,7 +235,7 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
                     date: new Date(timestamp),
                     txHash: tx.hash,
                     type: 'BUYBACK',
-                    value: formatUnits(burnAmount, 18),
+                    value: formatUnits(burnAmount, cornDecimals),
                     blockNumber: parseInt(tx.block_number),
                   });
                 } else if (decoded.type === 'ROUTED_STAKING') {
@@ -225,7 +247,7 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
                     date: new Date(timestamp),
                     txHash: tx.hash,
                     type: 'ROUTED_STAKING',
-                    value: formatUnits(amount, 18),
+                    value: formatUnits(amount, cornDecimals),
                     blockNumber: parseInt(tx.block_number),
                   });
                 }
@@ -239,10 +261,10 @@ export function useMoralisActivity(autoRefresh = true, refreshInterval = 30000) 
 
       // Update state
       setMetrics({
-        lpBurned: formatUnits(totalLpBurned, 18),
-        cornBurned: formatUnits(totalCornBurned, 18),
-        routedToStaking: formatUnits(totalRoutedStaking, 18),
-        buyback: formatUnits(totalBuyback, 18),
+        lpBurned: formatUnits(totalLpBurned, lpDecimals),
+        cornBurned: formatUnits(totalCornBurned, cornDecimals),
+        routedToStaking: formatUnits(totalRoutedStaking, cornDecimals),
+        buyback: formatUnits(totalBuyback, cornDecimals),
       });
 
       // Sort activities by date (newest first)
