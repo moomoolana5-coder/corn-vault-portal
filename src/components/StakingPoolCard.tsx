@@ -6,7 +6,17 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Lock, Unlock, Sparkles, Clock, AlertCircle } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Lock, Unlock, Sparkles, Clock, AlertCircle, ArrowDownCircle } from 'lucide-react';
 import { usePoolInfo, useUserPoolInfo } from '@/hooks/useStakingPools';
 import { useStakingDeposit, useStakingWithdraw, useStakingHarvest, useTokenApproval } from '@/hooks/useStakingActions';
 import { useFormattedBalance, useTokenMeta } from '@/hooks/useErc20';
@@ -43,6 +53,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
   const [showVirtualAPR, setShowVirtualAPR] = useState(true);
+  const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   const { pool, isLoading: poolLoading, refetch: refetchPool } = usePoolInfo(pid);
   const { userInfo, refetch: refetchUser } = useUserPoolInfo(pid, walletAddress);
@@ -185,7 +196,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
     }
   };
 
-  const handleWithdraw = async () => {
+  const handleWithdrawClick = () => {
     if (!unstakeAmount || !stakeTokenMeta.decimals) {
       toast({
         title: 'Invalid Amount',
@@ -218,7 +229,22 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
         return;
       }
 
+      // Show confirmation dialog
+      setShowWithdrawDialog(true);
+    } catch (error) {
+      console.error('Withdraw validation error:', error);
+      toast({
+        title: 'Validation Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleWithdrawConfirm = async () => {
+    try {
       await withdraw(pid, unstakeAmount, stakeTokenMeta.decimals);
+      setShowWithdrawDialog(false);
     } catch (error) {
       console.error('Withdraw error:', error);
       toast({
@@ -446,7 +472,7 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
                 <Button
                   className="w-full"
                   variant="secondary"
-                  onClick={handleWithdraw}
+                  onClick={handleWithdrawClick}
                   disabled={!unstakeAmount || withdrawPending || userInfo.amount === 0n}
                 >
                   <Unlock className="w-4 h-4 mr-2" />
@@ -477,6 +503,80 @@ export function StakingPoolCard({ pid, walletAddress, isConnected, onRefresh }: 
             </Button>
           </div>
         </div>
+
+        {/* Withdraw Confirmation Dialog */}
+        <AlertDialog open={showWithdrawDialog} onOpenChange={setShowWithdrawDialog}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle className="flex items-center gap-2">
+                <ArrowDownCircle className="w-5 h-5 text-primary" />
+                Confirm Withdrawal
+              </AlertDialogTitle>
+              <AlertDialogDescription asChild>
+                <div className="space-y-4 pt-4">
+                  <p className="text-foreground">
+                    Review your withdrawal details before confirming:
+                  </p>
+                  
+                  {/* Withdrawal Amount */}
+                  <div className="rounded-lg bg-muted/50 p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Withdrawal Amount</span>
+                      <span className="text-base font-bold text-foreground">
+                        {formatBalance(unstakeAmount)} {stakeSymbol}
+                      </span>
+                    </div>
+                    
+                    {/* Remaining Staked */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-muted-foreground">Remaining Staked</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {formatBalance(
+                          formatUnits(
+                            userInfo.amount - parseUnits(unstakeAmount, stakeTokenMeta.decimals || 18),
+                            stakeTokenMeta.decimals || 18
+                          )
+                        )} {stakeSymbol}
+                      </span>
+                    </div>
+                    
+                    {/* Pending Rewards */}
+                    {userInfo.pending > 0n && (
+                      <div className="pt-3 border-t border-border/40">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-accent" />
+                            <span className="text-sm text-muted-foreground">Pending Rewards</span>
+                          </div>
+                          <span className="text-base font-bold text-accent">
+                            {formatBalance(pendingFormatted, 6)} {rewardSymbol}
+                          </span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Your pending rewards will be automatically claimed during withdrawal
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    This action will unstake your tokens and automatically claim any pending rewards.
+                  </p>
+                </div>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={withdrawPending}>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleWithdrawConfirm}
+                disabled={withdrawPending}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {withdrawPending ? 'Processing...' : 'Confirm Withdrawal'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
         {/* End Time */}
         {pool.endTime > 0n && (
