@@ -103,8 +103,8 @@ export default function Staking() {
                     <span><strong className="text-yellow-600 dark:text-yellow-400">Pools marked "Not Active"</strong> need rewards configuration by contract admin before earning begins</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
-                    <span>Stake and unstake anytime; pools may have different reward schedules</span>
+                    <span className="text-orange-500 font-bold mt-0.5 flex-shrink-0">🔒</span>
+                    <span><strong className="text-orange-600 dark:text-orange-400">Lock Period (1-30 days)</strong>: You must choose a lock duration when staking. During the lock period, you cannot unstake or claim rewards</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="text-accent font-bold mt-0.5 flex-shrink-0">•</span>
@@ -139,10 +139,21 @@ export default function Staking() {
 
                     <div>
                       <strong className="text-foreground">How Staking Works:</strong>
-                      <p className="mt-1 ml-4">1. <strong>Deposit</strong>: Lock your tokens in the pool contract</p>
-                      <p className="mt-1 ml-4">2. <strong>Earn</strong>: Rewards accumulate every second based on pool's RPS (Rewards Per Second)</p>
-                      <p className="mt-1 ml-4">3. <strong>Claim</strong>: Harvest your rewards anytime without unstaking</p>
-                      <p className="mt-1 ml-4">4. <strong>Withdraw</strong>: Unstake your tokens whenever you want (automatically claims pending rewards)</p>
+                      <p className="mt-1 ml-4">1. <strong>Select Lock Period</strong>: Choose lock duration (1-30 days) before staking</p>
+                      <p className="mt-1 ml-4">2. <strong>Deposit</strong>: Lock your tokens in the pool contract for chosen duration</p>
+                      <p className="mt-1 ml-4">3. <strong>Earn</strong>: Rewards accumulate every second based on pool&apos;s RPS (Rewards Per Second)</p>
+                      <p className="mt-1 ml-4">4. <strong>Wait Lock Period</strong>: Cannot claim or unstake until lock period ends</p>
+                      <p className="mt-1 ml-4">5. <strong>Claim After Unlock</strong>: Harvest your rewards once lock period expires</p>
+                      <p className="mt-1 ml-4">6. <strong>Withdraw After Unlock</strong>: Unstake your tokens after lock period (automatically claims pending rewards)</p>
+                    </div>
+
+                    <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-md mt-4">
+                      <strong className="text-orange-600 dark:text-orange-400">⚠️ Important Lock Period Rules:</strong>
+                      <p className="mt-2 ml-4">• You <strong>must</strong> choose a lock duration (1-30 days) before staking</p>
+                      <p className="mt-1 ml-4">• During lock period: <strong>NO unstaking, NO claiming rewards</strong></p>
+                      <p className="mt-1 ml-4">• After lock expires: Full access to unstake and claim</p>
+                      <p className="mt-1 ml-4">• Countdown timer shows remaining lock time</p>
+                      <p className="mt-1 ml-4">• Plan your lock duration carefully based on your needs</p>
                     </div>
                   </div>
                 </div>
