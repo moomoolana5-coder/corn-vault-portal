@@ -5,13 +5,13 @@ import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StakingPoolCardV2 } from '@/components/StakingPoolCardV2';
 import { PriceIndicator } from '@/components/PriceIndicator';
-import { useAllPools } from '@/hooks/useStakingV2';
+import { useAllPoolsV3 } from '@/hooks/useStakingV3';
 import { AlertCircle, Coins } from 'lucide-react';
 import { ADDR } from '@/config/addresses';
 
 export default function StakingV2() {
   const { address, isConnected } = useAccount();
-  const { pools, isLoading: poolsLoading, refetch } = useAllPools();
+  const { pools, isLoading: poolsLoading, refetch } = useAllPoolsV3();
 
   return (
     <div className="min-h-screen bg-gradient-subtle">
@@ -31,7 +31,7 @@ export default function StakingV2() {
               Staking Pools
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto mb-6">
-              Stake your tokens to earn rewards across 5 pools
+              Stake your tokens to earn USDC rewards across 2 pools
             </p>
             
             {/* Stats */}
@@ -40,7 +40,7 @@ export default function StakingV2() {
                 <div className="flex items-center gap-6 px-6 py-3 rounded-lg bg-background/60 border border-border/40">
                   <div>
                     <p className="text-xs text-muted-foreground">Active Pools</p>
-                    <p className="text-lg font-bold">{pools.filter(p => !p.paused).length}</p>
+                    <p className="text-lg font-bold">{pools.filter(p => p.active).length}</p>
                   </div>
                   <div className="h-8 w-px bg-border/40" />
                   <div>
@@ -62,7 +62,7 @@ export default function StakingV2() {
               <p className="text-muted-foreground">No staking pools available</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
               {pools.map((pool) => (
                 <StakingPoolCardV2
                   key={pool.pid}
@@ -90,50 +90,45 @@ export default function StakingV2() {
                   <h5 className="text-sm md:text-base font-semibold mb-3 text-foreground">
                     📊 APR & TVL Calculations
                   </h5>
-                  <div className="space-y-3 text-xs sm:text-sm text-muted-foreground">
-                    <div>
-                      <strong className="text-foreground">APR (Annual Percentage Rate):</strong>
-                      <p className="mt-1 ml-4">APR = (Yearly Rewards Value / Total Staked Value) × 100</p>
-                      <p className="mt-1 ml-4">• Yearly Rewards = Rewards Per Second × 86,400 seconds × 365 days × Reward Token Price</p>
-                      <p className="mt-1 ml-4">• Higher APR means better returns on your staked tokens</p>
-                      <p className="mt-1 ml-4">• APR fluctuates based on total staked amount and token prices</p>
-                    </div>
-                    
-                    <div>
-                      <strong className="text-foreground">TVL (Total Value Locked):</strong>
-                      <p className="mt-1 ml-4">TVL = Total Staked Tokens × Token Price (USD)</p>
-                      <p className="mt-1 ml-4">• Shows the total USD value locked in the pool</p>
-                      <p className="mt-1 ml-4">• Higher TVL indicates more user confidence and liquidity</p>
-                      <p className="mt-1 ml-4">• TVL affects APR inversely: higher TVL = lower APR</p>
-                    </div>
+                  <ul className="space-y-2 text-xs md:text-sm text-muted-foreground">
+                    <li>• <strong className="text-foreground">APR Formula:</strong> (Rewards Per Second × Seconds Per Year × Reward Token Price) ÷ (Total Staked × Stake Token Price) × 100</li>
+                    <li>• <strong className="text-foreground">TVL Calculation:</strong> Total Staked × Stake Token Price</li>
+                    <li>• Prices are fetched from DexScreener API for real-time accuracy</li>
+                    <li>• Virtual prices from Moralis are used as fallback when DexScreener data is unavailable</li>
+                  </ul>
+                </div>
 
-                    <div>
-                      <strong className="text-foreground">How Staking Works:</strong>
-                      <p className="mt-1 ml-4">1. <strong>Select Lock Period</strong>: Choose lock duration (1-30 days) before staking</p>
-                      <p className="mt-1 ml-4">2. <strong>Deposit</strong>: Lock your tokens in the pool contract for chosen duration</p>
-                      <p className="mt-1 ml-4">3. <strong>Earn</strong>: Rewards accumulate every second based on pool's RPS (Rewards Per Second)</p>
-                      <p className="mt-1 ml-4">4. <strong>Wait Lock Period</strong>: Cannot claim or unstake until lock period ends</p>
-                      <p className="mt-1 ml-4">5. <strong>Claim After Unlock</strong>: Harvest your rewards once lock period expires</p>
-                      <p className="mt-1 ml-4">6. <strong>Withdraw After Unlock</strong>: Unstake your tokens after lock period (automatically claims pending rewards)</p>
-                    </div>
+                <div className="pt-6">
+                  <h5 className="text-sm md:text-base font-semibold mb-3 text-foreground">
+                    🔒 How Staking Works
+                  </h5>
+                  <ol className="space-y-2 text-xs md:text-sm text-muted-foreground list-decimal list-inside">
+                    <li><strong className="text-foreground">Connect Wallet:</strong> Connect your PulseChain wallet to access the pools</li>
+                    <li><strong className="text-foreground">Select Lock Period:</strong> Choose how long to lock your tokens (1-30 days)</li>
+                    <li><strong className="text-foreground">Deposit Tokens:</strong> Stake your tokens into the desired pool</li>
+                    <li><strong className="text-foreground">Wait Lock Period:</strong> Your tokens will be locked for the selected duration</li>
+                    <li><strong className="text-foreground">Earn Rewards:</strong> Rewards accumulate over time based on the pool's RPS (Rewards Per Second)</li>
+                    <li><strong className="text-foreground">Claim & Unstake:</strong> After the lock period, claim rewards and/or unstake your tokens</li>
+                  </ol>
+                </div>
 
-                    <div className="p-3 bg-orange-500/10 border border-orange-500/30 rounded-md mt-4">
-                      <strong className="text-orange-600 dark:text-orange-400">⚠️ Important Lock Period Rules:</strong>
-                      <p className="mt-2 ml-4">• You <strong>must</strong> choose a lock duration (1-30 days) before staking</p>
-                      <p className="mt-1 ml-4">• During lock period: <strong>NO unstaking, NO claiming rewards</strong></p>
-                      <p className="mt-1 ml-4">• After lock expires: Full access to unstake and claim</p>
-                      <p className="mt-1 ml-4">• Countdown timer shows remaining lock time</p>
-                      <p className="mt-1 ml-4">• Plan your lock duration carefully based on your needs</p>
-                    </div>
-                  </div>
+                <div className="pt-6">
+                  <h5 className="text-sm md:text-base font-semibold mb-3 text-foreground">
+                    ⚠️ Important Lock Period Rules
+                  </h5>
+                  <ul className="space-y-2 text-xs md:text-sm text-muted-foreground">
+                    <li>• <strong className="text-foreground">No Early Unstake:</strong> You cannot unstake tokens before the lock period ends</li>
+                    <li>• <strong className="text-foreground">No Early Claims:</strong> You cannot claim rewards before the lock period ends</li>
+                    <li>• <strong className="text-foreground">Emergency Withdraw:</strong> Available anytime but forfeits all pending rewards</li>
+                    <li>• <strong className="text-foreground">Choose Wisely:</strong> Select a lock period you're comfortable with as it cannot be changed</li>
+                  </ul>
                 </div>
               </div>
             </div>
           </Card>
         </div>
-
-        <Footer />
       </div>
+      <Footer />
     </div>
   );
 }
