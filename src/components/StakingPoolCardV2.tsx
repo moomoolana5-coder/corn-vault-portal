@@ -6,18 +6,27 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Loader2, TrendingUp, Lock, Clock } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, TrendingUp, Lock, Clock, AlertTriangle, Info } from 'lucide-react';
 import { formatUnits, parseUnits } from 'viem';
 import { formatBalance, compactNumber } from '@/lib/format';
 import { toast } from '@/hooks/use-toast';
-import { useDeposit, useWithdraw, useHarvest, useUserPoolInfo, PoolInfoV2 } from '@/hooks/useStakingV2';
+import { 
+  useUserPoolInfoV3, 
+  useDepositV3, 
+  useWithdrawV3, 
+  useClaimV3, 
+  useEmergencyWithdrawV3,
+  PoolInfoV3,
+  LOCK_OPTIONS 
+} from '@/hooks/useStakingV3';
 import { useTokenApproval } from '@/hooks/useStakingActions';
-import { useTokenMeta, useFormattedBalance } from '@/hooks/useErc20';
+import { useFormattedBalance } from '@/hooks/useErc20';
 import { useTokenPrice, calculateVirtualAPR, calculateVirtualTVL } from '@/hooks/useTokenPrice';
 import { ADDR } from '@/config/addresses';
 
 interface StakingPoolCardV2Props {
-  pool: PoolInfoV2;
+  pool: PoolInfoV3;
   walletAddress: `0x${string}` | undefined;
   isConnected: boolean;
   onRefresh?: () => void;
@@ -25,53 +34,45 @@ interface StakingPoolCardV2Props {
 
 const TOKEN_DECIMALS: Record<string, number> = {
   [ADDR.corn.toLowerCase()]: 18,
-  [ADDR.vecorn.toLowerCase()]: 18,
+  [ADDR.xcorn.toLowerCase()]: 18,
   [ADDR.wpls.toLowerCase()]: 18,
   [ADDR.usdc.toLowerCase()]: 6,
 };
 
 const TOKEN_SYMBOLS: Record<string, string> = {
   [ADDR.corn.toLowerCase()]: 'CORN',
-  [ADDR.vecorn.toLowerCase()]: 'veCORN',
+  [ADDR.xcorn.toLowerCase()]: 'xCORN',
   [ADDR.wpls.toLowerCase()]: 'WPLS',
   [ADDR.usdc.toLowerCase()]: 'USDC',
 };
 
-const LOCK_OPTIONS = [
-  { label: '1 Day', seconds: 86400 },
-  { label: '3 Days', seconds: 259200 },
-  { label: '7 Days', seconds: 604800 },
-  { label: '14 Days', seconds: 1209600 },
-  { label: '21 Days', seconds: 1814400 },
-  { label: '30 Days', seconds: 2592000 },
-];
-
 export function StakingPoolCardV2({ pool, walletAddress, isConnected, onRefresh }: StakingPoolCardV2Props) {
   const [stakeAmount, setStakeAmount] = useState('');
   const [unstakeAmount, setUnstakeAmount] = useState('');
-  const [lockSeconds, setLockSeconds] = useState<string>('604800'); // Default 7 days
+  const [lockOptIndex, setLockOptIndex] = useState<string>('2'); // Default 7 days
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
   const stakeTokenAddress = pool.stakeToken.toLowerCase();
   const rewardTokenAddress = pool.rewardToken.toLowerCase();
   
   const stakeDecimals = TOKEN_DECIMALS[stakeTokenAddress] || 18;
-  const rewardDecimals = TOKEN_DECIMALS[rewardTokenAddress] || 18;
+  const rewardDecimals = TOKEN_DECIMALS[rewardTokenAddress] || 6;
 
   const stakeSymbol = TOKEN_SYMBOLS[stakeTokenAddress] || 'TOKEN';
-  const rewardSymbol = TOKEN_SYMBOLS[rewardTokenAddress] || 'TOKEN';
+  const rewardSymbol = TOKEN_SYMBOLS[rewardTokenAddress] || 'USDC';
 
   // Hooks
-  const { userInfo, refetch: refetchUser } = useUserPoolInfo(pool.pid, walletAddress);
+  const { userInfo, refetch: refetchUser } = useUserPoolInfoV3(pool.pid, walletAddress);
   const { formatted: availableBalance, refetch: refetchBalance } = useFormattedBalance(
     pool.stakeToken as `0x${string}`,
     walletAddress,
     stakeDecimals
   );
   
-  const { deposit, isPending: isDepositing, isSuccess: depositSuccess } = useDeposit();
-  const { withdraw, isPending: isWithdrawing, isSuccess: withdrawSuccess } = useWithdraw();
-  const { harvest, isPending: isHarvesting, isSuccess: harvestSuccess } = useHarvest();
+  const { deposit, isPending: isDepositing, isSuccess: depositSuccess } = useDepositV3();
+  const { withdraw, isPending: isWithdrawing, isSuccess: withdrawSuccess } = useWithdrawV3();
+  const { claim, isPending: isClaiming, isSuccess: claimSuccess } = useClaimV3();
+  const { emergencyWithdraw, isPending: isEmergencyWithdrawing, isSuccess: emergencySuccess } = useEmergencyWithdrawV3();
   const { allowance, approve, isPending: isApproving, isSuccess: approveSuccess } = useTokenApproval(
     pool.stakeToken as `0x${string}`,
     walletAddress
@@ -82,7 +83,7 @@ export function StakingPoolCardV2({ pool, walletAddress, isConnected, onRefresh 
   const rewardPrice = useTokenPrice(pool.rewardToken);
 
   const apr = calculateVirtualAPR(
-    pool.rewardsPerSecond,
+    pool.rps,
     rewardPrice,
     pool.totalStaked,
     stakePrice,
@@ -94,292 +95,359 @@ export function StakingPoolCardV2({ pool, walletAddress, isConnected, onRefresh 
 
   // Lock end check
   const now = Math.floor(Date.now() / 1000);
-  const lockEnd = userInfo ? Number(userInfo.lockEnd) : 0;
+  const lockEnd = userInfo ? Number(userInfo.lockUntil) : 0;
   const isLocked = lockEnd > now;
-  const timeUntilUnlock = isLocked ? lockEnd - now : 0;
+  const lockEndDate = lockEnd > 0 ? new Date(lockEnd * 1000) : null;
 
-  // Format lock countdown
-  const formatLockTime = (seconds: number) => {
-    const days = Math.floor(seconds / 86400);
-    const hours = Math.floor((seconds % 86400) / 3600);
-    const mins = Math.floor((seconds % 3600) / 60);
-    if (days > 0) return `${days}d ${hours}h ${mins}m`;
-    if (hours > 0) return `${hours}h ${mins}m`;
-    return `${mins}m`;
-  };
-
-  // Effects
+  // Refetch on success
   useEffect(() => {
-    if (depositSuccess) {
-      toast({ title: 'Deposit Successful', description: `Staked ${stakeAmount} ${stakeSymbol}` });
+    if (depositSuccess || withdrawSuccess || claimSuccess || emergencySuccess || approveSuccess) {
+      refetchUser();
+      refetchBalance();
+      onRefresh?.();
       setStakeAmount('');
-      refetchUser();
-      refetchBalance();
-      onRefresh?.();
-    }
-  }, [depositSuccess]);
-
-  useEffect(() => {
-    if (withdrawSuccess) {
-      toast({ title: 'Withdraw Successful', description: `Unstaked ${unstakeAmount} ${stakeSymbol}` });
       setUnstakeAmount('');
-      refetchUser();
-      refetchBalance();
-      onRefresh?.();
     }
-  }, [withdrawSuccess]);
+  }, [depositSuccess, withdrawSuccess, claimSuccess, emergencySuccess, approveSuccess]);
 
-  useEffect(() => {
-    if (harvestSuccess) {
-      toast({ title: 'Harvest Successful', description: 'Claimed your rewards' });
-      refetchUser();
-      onRefresh?.();
-    }
-  }, [harvestSuccess]);
-
-  useEffect(() => {
-    if (approveSuccess) {
-      toast({ title: 'Approval Successful', description: `Approved ${stakeSymbol} spending` });
-    }
-  }, [approveSuccess]);
-
-  // Handlers
   const handleStake = async () => {
-    if (!stakeAmount || !lockSeconds) {
-      toast({ title: 'Missing Input', description: 'Please enter amount and select lock period', variant: 'destructive' });
-      return;
-    }
+    if (!stakeAmount || !walletAddress) return;
     
-    const amountWei = parseUnits(stakeAmount, stakeDecimals);
-    
-    if (allowance === undefined || allowance < amountWei) {
-      await approve(stakeAmount, stakeDecimals);
-    } else {
-      await deposit(pool.pid, stakeAmount, parseInt(lockSeconds), stakeDecimals);
+    try {
+      const amountBigInt = parseUnits(stakeAmount, stakeDecimals);
+      
+      // Check allowance first
+      if (allowance < amountBigInt) {
+        toast({
+          title: 'Approval Required',
+          description: 'Please approve the staking contract to spend your tokens',
+        });
+        await approve(amountBigInt, ADDR.staking as `0x${string}`);
+        return;
+      }
+
+      // Then deposit
+      await deposit(pool.pid, stakeAmount, Number(lockOptIndex), stakeDecimals);
+    } catch (error) {
+      console.error('Stake error:', error);
+      toast({
+        title: 'Stake Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
     }
   };
 
-  const handleWithdrawClick = () => {
+  const handleUnstake = async () => {
+    if (!unstakeAmount || !walletAddress) return;
+    
     if (isLocked) {
       toast({
-        title: 'Stake Locked',
-        description: `Cannot withdraw until lock expires (${formatLockTime(timeUntilUnlock)})`,
+        title: 'Locked',
+        description: 'You cannot unstake until the lock period ends',
         variant: 'destructive',
       });
       return;
     }
-    setShowWithdrawDialog(true);
-  };
 
-  const handleWithdrawConfirm = async () => {
-    if (!unstakeAmount) {
-      toast({ title: 'Missing Amount', description: 'Please enter amount to withdraw', variant: 'destructive' });
-      return;
+    try {
+      await withdraw(pool.pid, unstakeAmount, stakeDecimals);
+      setShowWithdrawDialog(false);
+    } catch (error) {
+      console.error('Unstake error:', error);
+      toast({
+        title: 'Unstake Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
     }
-    setShowWithdrawDialog(false);
-    await withdraw(pool.pid, unstakeAmount, stakeDecimals);
   };
 
-  const handleHarvest = async () => {
+  const handleClaim = async () => {
+    if (!walletAddress) return;
+    
     if (isLocked) {
       toast({
-        title: 'Stake Locked',
-        description: `Cannot claim until lock expires (${formatLockTime(timeUntilUnlock)})`,
+        title: 'Locked',
+        description: 'You cannot claim rewards until the lock period ends',
         variant: 'destructive',
       });
       return;
     }
-    await harvest(pool.pid);
+
+    try {
+      await claim(pool.pid);
+    } catch (error) {
+      console.error('Claim error:', error);
+      toast({
+        title: 'Claim Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
   };
 
-  const userStaked = userInfo ? formatUnits(userInfo.amount, stakeDecimals) : '0';
-  const pendingRewards = userInfo ? formatUnits(userInfo.pendingReward, rewardDecimals) : '0';
+  const handleEmergencyWithdraw = async () => {
+    if (!walletAddress) return;
+    
+    try {
+      await emergencyWithdraw(pool.pid);
+    } catch (error) {
+      console.error('Emergency withdraw error:', error);
+      toast({
+        title: 'Emergency Withdraw Failed',
+        description: error instanceof Error ? error.message : 'Unknown error',
+        variant: 'destructive',
+      });
+    }
+  };
 
-  const isActive = pool.rewardsPerSecond > 0n;
+  const handleMaxStake = () => {
+    setStakeAmount(availableBalance || '0');
+  };
+
+  const handleMaxUnstake = () => {
+    if (userInfo) {
+      setUnstakeAmount(formatUnits(userInfo.amount, stakeDecimals));
+    }
+  };
 
   return (
-    <Card className="border-accent/20 bg-gradient-card backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
-      <CardHeader className="pb-3">
+    <Card className="border-border/40 bg-gradient-card backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+      <CardHeader className="pb-4">
         <div className="flex items-start justify-between">
           <div>
-            <CardTitle className="text-base md:text-lg mb-2">
-              Stake <span className="text-primary">{stakeSymbol}</span>
+            <CardTitle className="text-lg md:text-xl flex items-center gap-2">
+              <span className="bg-gradient-corn bg-clip-text text-transparent">
+                Stake {stakeSymbol}
+              </span>
+              <span className="text-muted-foreground">→</span>
+              <span className="bg-gradient-corn bg-clip-text text-transparent">
+                Earn {rewardSymbol}
+              </span>
             </CardTitle>
-            <p className="text-xs text-muted-foreground">
-              Earn <span className="text-accent font-medium">{rewardSymbol}</span>
+          </div>
+          <Badge variant={pool.active ? "default" : "destructive"}>
+            {pool.active ? "Active" : "Not Active"}
+          </Badge>
+        </div>
+
+        {!pool.active && (
+          <Alert variant="destructive" className="mt-4">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              This pool is not active. Please wait for admin to activate it.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3 mt-4">
+          <div className="bg-background/60 p-3 rounded-lg border border-border/40">
+            <div className="flex items-center gap-1 mb-1">
+              <TrendingUp className="w-3 h-3 text-primary" />
+              <p className="text-xs text-muted-foreground">APR</p>
+            </div>
+            <p className="text-base md:text-lg font-bold text-primary">
+              {apr !== null ? `${apr.toFixed(2)}%` : '—'}
             </p>
           </div>
-          <div className="flex flex-col gap-1">
-            <Badge variant={isActive ? 'default' : 'secondary'} className="text-xs">
-              {isActive ? 'Active' : 'Not Active'}
-            </Badge>
-            {pool.paused && (
-              <Badge variant="destructive" className="text-xs">
-                Paused
-              </Badge>
-            )}
-            {isLocked && (
-              <Badge variant="outline" className="text-xs border-orange-500 text-orange-600 dark:text-orange-400">
-                <Lock className="w-3 h-3 mr-1" />
-                Locked
-              </Badge>
-            )}
+          <div className="bg-background/60 p-3 rounded-lg border border-border/40">
+            <p className="text-xs text-muted-foreground mb-1">TVL</p>
+            <p className="text-base md:text-lg font-bold">
+              ${tvl !== null ? compactNumber(tvl) : '—'}
+            </p>
           </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
-        {/* Stats */}
-        <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-background/40">
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">APR</p>
-            <p className="text-sm font-bold text-primary flex items-center gap-1">
-              <TrendingUp className="w-3 h-3" />
-              {apr > 0 ? `${apr.toFixed(2)}%` : '—'}
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground mb-1">TVL</p>
-            <p className="text-sm font-bold">${compactNumber(tvl)}</p>
-          </div>
-        </div>
-
-        {/* User Info */}
-        {isConnected && walletAddress && (
-          <div className="space-y-2 text-xs">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Available:</span>
-              <span className="font-medium">{formatBalance(availableBalance, 4)} {stakeSymbol}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Staked:</span>
-              <span className="font-medium text-primary">{formatBalance(userStaked, 4)} {stakeSymbol}</span>
-            </div>
-            {isLocked && (
-              <div className="flex justify-between items-center p-2 rounded bg-orange-500/10 border border-orange-500/30">
-                <span className="text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
-                  Unlocks in:
-                </span>
-                <span className="font-bold text-orange-600 dark:text-orange-400">{formatLockTime(timeUntilUnlock)}</span>
+        {isConnected ? (
+          <>
+            {/* User Stats */}
+            <div className="grid grid-cols-3 gap-2 p-3 bg-background/40 rounded-lg border border-border/40">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Available</p>
+                <p className="text-sm font-semibold truncate" title={availableBalance}>
+                  {availableBalance ? formatBalance(availableBalance, 4) : '0'}
+                </p>
               </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Staked</p>
+                <p className="text-sm font-semibold">
+                  {userInfo ? formatBalance(formatUnits(userInfo.amount, stakeDecimals), 4) : '0'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Rewards</p>
+                <p className="text-sm font-semibold text-primary">
+                  {userInfo ? formatBalance(formatUnits(userInfo.pendingReward, rewardDecimals), 4) : '0'}
+                </p>
+              </div>
+            </div>
+
+            {/* Lock Status */}
+            {isLocked && lockEndDate && (
+              <Alert>
+                <Lock className="h-4 w-4" />
+                <AlertDescription>
+                  <p className="text-sm font-semibold">Locked until {lockEndDate.toLocaleString()}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    You cannot unstake or claim rewards until the lock period ends
+                  </p>
+                </AlertDescription>
+              </Alert>
             )}
-          </div>
-        )}
 
-        {/* Actions */}
-        {!isConnected ? (
-          <w3m-button />
-        ) : (
-          <Tabs defaultValue="stake" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="stake" disabled={pool.paused}>Stake</TabsTrigger>
-              <TabsTrigger value="unstake">Unstake</TabsTrigger>
-            </TabsList>
+            {/* Tabs */}
+            <Tabs defaultValue="stake" className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="stake">Stake</TabsTrigger>
+                <TabsTrigger value="unstake">Unstake</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="stake" className="space-y-3">
-              <Select value={lockSeconds} onValueChange={setLockSeconds}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select lock period" />
-                </SelectTrigger>
-                <SelectContent>
-                  {LOCK_OPTIONS.map(opt => (
-                    <SelectItem key={opt.seconds} value={opt.seconds.toString()}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  placeholder="0.0"
-                  value={stakeAmount}
-                  onChange={(e) => setStakeAmount(e.target.value)}
-                  disabled={pool.paused}
-                />
+              {/* Stake Tab */}
+              <TabsContent value="stake" className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Lock Period</label>
+                  <Select value={lockOptIndex} onValueChange={setLockOptIndex}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select lock period" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {LOCK_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value.toString()}>
+                          {opt.label}{opt.value === 2 ? ' (Recommended)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    <Info className="w-3 h-3 inline mr-1" />
+                    You cannot unstake or claim rewards during the lock period
+                  </p>
+                </div>
+
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Amount to Stake</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="0.0"
+                      value={stakeAmount}
+                      onChange={(e) => setStakeAmount(e.target.value)}
+                      disabled={!pool.active}
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={handleMaxStake}
+                      disabled={!pool.active}
+                    >
+                      MAX
+                    </Button>
+                  </div>
+                </div>
+
                 <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setStakeAmount(availableBalance)}
-                  disabled={pool.paused}
+                  onClick={handleStake}
+                  disabled={!stakeAmount || isApproving || isDepositing || !pool.active}
+                  className="w-full"
                 >
-                  MAX
+                  {isApproving ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Approving...
+                    </>
+                  ) : isDepositing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Staking...
+                    </>
+                  ) : (
+                    'Stake'
+                  )}
                 </Button>
-              </div>
+              </TabsContent>
+
+              {/* Unstake Tab */}
+              <TabsContent value="unstake" className="space-y-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Amount to Unstake</label>
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="0.0"
+                      value={unstakeAmount}
+                      onChange={(e) => setUnstakeAmount(e.target.value)}
+                      disabled={isLocked}
+                    />
+                    <Button 
+                      variant="outline" 
+                      onClick={handleMaxUnstake}
+                      disabled={isLocked}
+                    >
+                      MAX
+                    </Button>
+                  </div>
+                </div>
+
+                <Button
+                  onClick={() => setShowWithdrawDialog(true)}
+                  disabled={!unstakeAmount || isWithdrawing || isLocked}
+                  className="w-full"
+                >
+                  {isWithdrawing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Unstaking...
+                    </>
+                  ) : (
+                    'Unstake'
+                  )}
+                </Button>
+              </TabsContent>
+            </Tabs>
+
+            {/* Action Buttons */}
+            <div className="grid grid-cols-2 gap-2 pt-2">
               <Button
-                className="w-full"
-                onClick={handleStake}
-                disabled={isDepositing || isApproving || pool.paused || !stakeAmount}
+                onClick={handleClaim}
+                disabled={!userInfo || userInfo.pendingReward === 0n || isClaiming || isLocked}
+                variant="outline"
               >
-                {isDepositing || isApproving ? (
+                {isClaiming ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    {isApproving ? 'Approving...' : 'Staking...'}
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Claiming...
                   </>
                 ) : (
-                  'Stake'
+                  `Claim ${rewardSymbol}`
                 )}
               </Button>
-            </TabsContent>
 
-            <TabsContent value="unstake" className="space-y-3">
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  placeholder="0.0"
-                  value={unstakeAmount}
-                  onChange={(e) => setUnstakeAmount(e.target.value)}
-                />
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setUnstakeAmount(userStaked)}
-                >
-                  MAX
-                </Button>
-              </div>
               <Button
-                className="w-full"
+                onClick={handleEmergencyWithdraw}
+                disabled={!userInfo || userInfo.amount === 0n || isEmergencyWithdrawing}
                 variant="destructive"
-                onClick={handleWithdrawClick}
-                disabled={isWithdrawing || !unstakeAmount}
               >
-                {isWithdrawing ? (
+                {isEmergencyWithdrawing ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Unstaking...
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Withdrawing...
                   </>
                 ) : (
-                  'Unstake'
+                  'Emergency Withdraw'
                 )}
               </Button>
-            </TabsContent>
-          </Tabs>
-        )}
-
-        {/* Pending Rewards */}
-        {isConnected && walletAddress && Number(pendingRewards) > 0 && (
-          <div className="p-3 rounded-lg bg-accent/10 border border-accent/30">
-            <div className="flex justify-between items-center mb-2">
-              <span className="text-xs text-muted-foreground">Pending Rewards</span>
-              <span className="text-sm font-bold text-accent">{formatBalance(pendingRewards, 6)} {rewardSymbol}</span>
             </div>
-            <Button
-              size="sm"
-              className="w-full"
-              onClick={handleHarvest}
-              disabled={isHarvesting || isLocked}
-            >
-              {isHarvesting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Claiming...
-                </>
-              ) : (
-                'Claim Rewards'
-              )}
-            </Button>
+
+            <p className="text-xs text-muted-foreground text-center">
+              Emergency withdraw forfeits all pending rewards
+            </p>
+          </>
+        ) : (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">Connect your wallet to stake</p>
           </div>
         )}
       </CardContent>
@@ -390,13 +458,15 @@ export function StakingPoolCardV2({ pool, walletAddress, isConnected, onRefresh 
           <AlertDialogHeader>
             <AlertDialogTitle>Confirm Unstake</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to unstake {unstakeAmount} {stakeSymbol}?
-              This will also claim any pending rewards.
+              You are about to unstake {unstakeAmount} {stakeSymbol}.
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleWithdrawConfirm}>Confirm</AlertDialogAction>
+            <AlertDialogAction onClick={handleUnstake}>
+              Confirm Unstake
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
