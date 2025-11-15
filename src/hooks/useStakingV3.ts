@@ -2,6 +2,7 @@ import { useReadContract, useWriteContract, useWaitForTransactionReceipt, useAcc
 import { ADDR } from '@/config/addresses';
 import { stakingAbiV3 } from '@/abi/StakingContractV3';
 import { parseUnits } from 'viem';
+import { pulsechain } from '@/lib/chains';
 import { toast } from '@/hooks/use-toast';
 
 // Pool info interface
@@ -42,6 +43,7 @@ export function useIsOwnerV3() {
   const { data: ownerAddress, isLoading } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbiV3,
+    chainId: pulsechain.id,
     functionName: 'owner',
   });
 
@@ -59,6 +61,7 @@ export function usePoolInfoV3(pid: number) {
   const { data: dataInfo, isLoading: loadingInfo, error: errorInfo, refetch: refetchInfo } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbiV3,
+    chainId: pulsechain.id,
     functionName: 'poolInfo',
     args: [BigInt(pid)],
   });
@@ -66,6 +69,7 @@ export function usePoolInfoV3(pid: number) {
   const { data: dataPools, isLoading: loadingPools, error: errorPools, refetch: refetchPools } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbiV3,
+    chainId: pulsechain.id,
     functionName: 'pools',
     args: [BigInt(pid)],
   });
@@ -132,6 +136,7 @@ export function useUserPoolInfoV3(pid: number, userAddress: `0x${string}` | unde
   const { data: userInfoData, isLoading: userInfoLoading, refetch: refetchUserInfo } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbiV3,
+    chainId: pulsechain.id,
     functionName: 'users',
     args: userAddress ? [BigInt(pid), userAddress] : undefined,
     query: {
@@ -142,6 +147,7 @@ export function useUserPoolInfoV3(pid: number, userAddress: `0x${string}` | unde
   const { data: pendingRewardData, isLoading: pendingLoading, refetch: refetchPending } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbiV3,
+    chainId: pulsechain.id,
     functionName: 'pendingReward',
     args: userAddress ? [BigInt(pid), userAddress] : undefined,
     query: {
