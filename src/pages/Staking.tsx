@@ -3,18 +3,15 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { StakingPoolCard } from '@/components/StakingPoolCard';
+import { StakingPoolCardV2 } from '@/components/StakingPoolCardV2';
 import { PriceIndicator } from '@/components/PriceIndicator';
-import { useAllPools } from '@/hooks/useStakingPools';
+import { useAllPoolsV3 } from '@/hooks/useStakingV3';
 import { AlertCircle, Coins } from 'lucide-react';
-import { formatUnits } from 'viem';
-import { useTokenMeta } from '@/hooks/useErc20';
-import { formatBalance, compactNumber } from '@/lib/format';
 import { ADDR } from '@/config/addresses';
 
 export default function Staking() {
   const { address, isConnected } = useAccount();
-  const { pools, isLoading: poolsLoading, refetch } = useAllPools();
+  const { pools, isLoading: poolsLoading, refetch } = useAllPoolsV3();
 
 
   return (
@@ -35,7 +32,7 @@ export default function Staking() {
               Staking Pools
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto mb-6">
-              Stake your tokens to earn rewards across multiple pools
+              Stake CORN or xCORN to earn USDC rewards
             </p>
             
             {/* Stats */}
@@ -44,7 +41,7 @@ export default function Staking() {
                 <div className="flex items-center gap-6 px-6 py-3 rounded-lg bg-background/60 border border-border/40">
                   <div>
                     <p className="text-xs text-muted-foreground">Active Pools</p>
-                    <p className="text-lg font-bold">{pools.filter(p => !p.paused).length}</p>
+                    <p className="text-lg font-bold">{pools.filter(p => p.active).length}</p>
                   </div>
                   <div className="h-8 w-px bg-border/40" />
                   <div>
@@ -66,11 +63,11 @@ export default function Staking() {
               <p className="text-muted-foreground">No staking pools available</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8 md:mb-12">
               {pools.map((pool) => (
-                <StakingPoolCard
+                <StakingPoolCardV2
                   key={pool.pid}
-                  pid={pool.pid}
+                  pool={pool}
                   walletAddress={address}
                   isConnected={isConnected}
                   onRefresh={refetch}
