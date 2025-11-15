@@ -10,6 +10,7 @@ import Home from "./pages/Home";
 import Vault from "./pages/Vault";
 import Staking from "./pages/Staking";
 import Admin from "./pages/Admin";
+import AdminV3 from "./pages/AdminV3";
 import Activity from "./pages/Activity";
 import NotFound from "./pages/NotFound";
 
@@ -40,7 +41,7 @@ const App = () => (
             <Route path="/" element={<Home />} />
             <Route path="/vault" element={<Vault />} />
             <Route path="/staking" element={<Staking />} />
-            <Route path="/admin" element={<Admin />} />
+            <Route path="/admin" element={<AdminV3 />} />
             <Route path="/activity" element={<Activity />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
