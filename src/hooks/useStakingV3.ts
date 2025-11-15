@@ -56,31 +56,55 @@ export function useIsOwnerV3() {
 
 // Hook to get pool info
 export function usePoolInfoV3(pid: number) {
-  const { data, isLoading, error, refetch } = useReadContract({
+  const { data: dataInfo, isLoading: loadingInfo, error: errorInfo, refetch: refetchInfo } = useReadContract({
     address: ADDR.staking as `0x${string}`,
     abi: stakingAbiV3,
     functionName: 'poolInfo',
     args: [BigInt(pid)],
   });
 
-  const pool: PoolInfoV3 | undefined = data ? {
-    pid,
-    stakeToken: (data as any)[0],
-    rewardToken: (data as any)[1],
-    totalStaked: (data as any)[2],
-    rps: (data as any)[3],
-    endTime: (data as any)[4],
-    active: (data as any)[5],
-    lastTime: (data as any)[6],
-    accPerShare: (data as any)[7],
-  } : undefined;
+  const { data: dataPools, isLoading: loadingPools, error: errorPools, refetch: refetchPools } = useReadContract({
+    address: ADDR.staking as `0x${string}`,
+    abi: stakingAbiV3,
+    functionName: 'pools',
+    args: [BigInt(pid)],
+  });
 
-  return {
-    pool,
-    isLoading,
-    error,
-    refetch,
-  };
+  let pool: PoolInfoV3 | undefined = undefined;
+  if (dataInfo) {
+    const d: any = dataInfo as any;
+    pool = {
+      pid,
+      stakeToken: d[0],
+      rewardToken: d[1],
+      totalStaked: d[2],
+      rps: d[3],
+      endTime: d[4],
+      active: d[5],
+      lastTime: d[6],
+      accPerShare: d[7],
+    };
+  } else if (dataPools) {
+    const d: any = dataPools as any;
+    // pools mapping order: stake, reward, accPerShare, lastTime, rps, endTime, totalStaked, active
+    pool = {
+      pid,
+      stakeToken: d[0],
+      rewardToken: d[1],
+      totalStaked: d[6],
+      rps: d[4],
+      endTime: d[5],
+      active: d[7],
+      lastTime: d[3],
+      accPerShare: d[2],
+    };
+  }
+
+  const isLoading = loadingInfo || loadingPools;
+  const error = errorInfo || errorPools;
+  const refetch = () => { refetchInfo(); refetchPools(); };
+
+  return { pool, isLoading, error, refetch };
 }
 
 // Hook to get all pools (2 pools: pid 0 and 1)
