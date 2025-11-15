@@ -122,7 +122,7 @@ export function StakingPoolCardV2({ pool, walletAddress, isConnected, onRefresh 
           title: 'Approval Required',
           description: 'Please approve the staking contract to spend your tokens',
         });
-        await approve(amountBigInt, ADDR.staking as `0x${string}`);
+        await approve(stakeAmount, stakeDecimals);
         return;
       }
 
