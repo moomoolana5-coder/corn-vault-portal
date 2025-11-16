@@ -2,10 +2,10 @@ export const ADDR = {
   corn: "0xd7661cce8EeD01CBAA0188FAcdDE2e46c4Ebe4B0",
   xcorn: "0x7075F000abf9735d6C0c37473c54EF12fa983088",
   wpls: "0xA1077a294dDE1B09bB078844df40758a5D0f9a27",
+  usdc: "0x15D38573d2feeb82e7ad5187aB8c1D52810B1f07",
   controller: "0x9D86aB0c305633A1e77cfEADF62d07AB70e7CCf5",
-  staking: "0xe384efeae2a9325a2aCe20A8A448A200750B44F5",
+  staking: "0xe384efeae2a9325a2aCe20A8A448A200750B44F5", // Update this with new staking contract address
   treasury: "0xaaF96CAeB5002E7Af3a415c5BDE8c3cFbd289071",
   dead: "0x0000000000000000000000000000000000000369",
-  usdc: "0x15D38573d2feeb82e7ad5187aB8c1D52810B1f07",
   vecorn: "0x3facf37Bc7d46Fe899A3Fe4991C3ee8a8e7AB489",
 } as const;
