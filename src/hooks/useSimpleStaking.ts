@@ -57,7 +57,7 @@ export function usePoolInfo(poolId: number) {
     args: [BigInt(poolId)],
   });
 
-  const pool: SimplePool | undefined = data ? {
+  const pool: SimplePool = data ? {
     id: poolId,
     stakeToken: (data as any)[0],
     rewardToken: (data as any)[1],
@@ -68,7 +68,18 @@ export function usePoolInfo(poolId: number) {
     rewardName: config.rewardName,
     stakeDecimals: config.stakeDecimals,
     rewardDecimals: config.rewardDecimals,
-  } : undefined;
+  } : {
+    id: poolId,
+    stakeToken: config.stakeToken,
+    rewardToken: config.rewardToken,
+    rewardPerSecond: 0n,
+    totalStaked: 0n,
+    active: false,
+    stakeName: config.stakeName,
+    rewardName: config.rewardName,
+    stakeDecimals: config.stakeDecimals,
+    rewardDecimals: config.rewardDecimals,
+  };
 
   return { pool, isLoading, error, refetch };
 }
